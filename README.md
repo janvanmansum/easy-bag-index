@@ -1,5 +1,5 @@
-easy-bag-store-index
-====================
+easy-bag-index
+==============
 
 Index a bag store
 
