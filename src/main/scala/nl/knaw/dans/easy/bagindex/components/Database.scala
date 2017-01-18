@@ -18,7 +18,7 @@ package nl.knaw.dans.easy.bagindex.components
 import java.sql.{ Connection, DriverManager }
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagId, BagIdNotFoundException, BagRelation, BaseId, dateTimeFormatter }
+import nl.knaw.dans.easy.bagindex._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 import resource._

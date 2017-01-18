@@ -21,7 +21,8 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import scala.util.Try
 
 trait GetBagFromIndex {
-  this: Database with DebugEnhancedLogging =>
+  this: Database
+    with DebugEnhancedLogging =>
 
   /**
    * Returns a sequence of all bagIds that are in the same bag sequence as the given bagId.

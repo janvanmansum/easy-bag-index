@@ -28,11 +28,23 @@ import scala.collection.JavaConverters._
 import scala.util.{ Failure, Try }
 
 trait AddBagFromBagStore {
-  this: AddBagToIndex with BagStoreAccess with BagFacadeComponent with DebugEnhancedLogging =>
+  this: AddBagToIndex
+    with BagStoreAccess
+    with BagFacadeComponent
+    with DebugEnhancedLogging =>
 
   val IS_VERSION_OF = "Is-Version-Of"
   val CREATED = "Created"
 
+  /**
+   * Add the bag info of the bag identified with bagId to the database.
+   * Specificly, the 'Is-Version-Of' and 'Created' fields from the bag's `bag-info.txt` are read
+   * and added to the database. If the 'Is-Version-Of' points to a bag that is not a base bag,
+   * the ''real'' base bag is related with this bagId instead.
+   *
+   * @param bagId the bagId identifying the bag to be indexed
+   * @return the baseId that linked with the given bagId
+   */
   def addFromBagStore(bagId: BagId): Try[BaseId] = {
     trace(bagId)
     for {
@@ -71,6 +83,7 @@ trait AddBagFromBagStore {
           if Files.exists(newPath)
         } yield (newPath, restPath2)
 
+        // pattern match is necessary for tail recursion
         res match {
           case Some((path, tail)) => tailRec(path, tail)
           case None => None

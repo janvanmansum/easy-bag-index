@@ -22,7 +22,8 @@ import org.joda.time.DateTime
 import scala.util.Try
 
 trait AddBagToIndex {
-  this: Database with DebugEnhancedLogging =>
+  this: Database
+    with DebugEnhancedLogging =>
 
   /**
    * Inserts a baseId into the index; that is, the bagId specifies itself as its base.
@@ -33,8 +34,7 @@ trait AddBagToIndex {
    */
   def addBase(bagId: BagId, created: Option[DateTime] = None): Try[BaseId] = {
     trace((bagId, created))
-    addBagRelation(bagId, bagId, created.getOrElse(DateTime.now()))
-      .map(_ => bagId)
+    addBagRelation(bagId, bagId, created.getOrElse(DateTime.now())).map(_ => bagId)
   }
 
   /**

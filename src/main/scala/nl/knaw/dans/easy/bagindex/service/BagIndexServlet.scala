@@ -18,17 +18,15 @@ package nl.knaw.dans.easy.bagindex.service
 import java.net.URI
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.BagIndexApp
+import nl.knaw.dans.easy.bagindex.{ BagIndexApp, _ }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.scalatra._
-import nl.knaw.dans.easy.bagindex._
 import org.joda.time.DateTime
 import org.json4s.JsonDSL._
-
-import scala.xml.PrettyPrinter
 import org.json4s.native.JsonMethods._
+import org.scalatra._
 
 import scala.util.Try
+import scala.xml.PrettyPrinter
 
 case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugEnhancedLogging {
   import app._
