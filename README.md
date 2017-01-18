@@ -1,2 +1,16 @@
-# easy-bag-index
-Metadata index for Bags in a BagStore
+easy-bag-store-index
+====================
+
+Index a bag store
+
+
+SYNOPSIS
+--------
+
+TODO
+
+
+DESCRIPTION
+-----------
+
+TODO
