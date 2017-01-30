@@ -15,17 +15,18 @@
  */
 package nl.knaw.dans.easy.bagindex.components
 
-import java.nio.file.{ Files, Path }
+import java.net.URI
+import java.nio.file.{Files, Path}
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex.JavaOptionals._
-import nl.knaw.dans.easy.bagindex.{ BagId, BagNotFoundInBagStoreException, BaseId, dateTimeFormatter }
+import nl.knaw.dans.easy.bagindex.{BagId, BagNotFoundInBagStoreException, BaseId, InvalidIsVersionOfException, dateTimeFormatter}
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
-import scala.util.{ Failure, Try }
+import scala.util.{Failure, Success, Try}
 
 trait AddBagFromBagStore {
   this: AddBagToIndex
@@ -50,10 +51,24 @@ trait AddBagFromBagStore {
     for {
       bagDir <- toLocation(bagId)
       bagInfo <- bagFacade.getBagInfo(bagDir)
-      baseId = bagInfo.get(IS_VERSION_OF).map(UUID.fromString)
+      baseId <- bagInfo.get(IS_VERSION_OF)
+        .map(s => Try {
+          new URI(s)
+        }.flatMap(getIsVersionOfFromUri(bagId)).map(Option(_)))
+        .getOrElse(Success(None))
       created = bagInfo.get(CREATED).map(DateTime.parse(_, dateTimeFormatter))
       superBaseId <- baseId.map(add(bagId, _, created)).getOrElse(addBase(bagId, created))
     } yield superBaseId
+  }
+
+  // TODO: canditate for easy-bagit-lib
+  private def getIsVersionOfFromUri(bagId: BagId)(uri: URI): Try[UUID] = {
+    if(uri.getScheme == "urn") {
+      val uuidPart = uri.getSchemeSpecificPart
+      val parts = uuidPart.split(':')
+      if (parts.length != 2) Failure(InvalidIsVersionOfException(bagId, uri.toASCIIString))
+      else Try { UUID.fromString(parts(1)) }
+    } else Failure(InvalidIsVersionOfException(bagId, uri.toASCIIString))
   }
 
   // TODO replace this method with a call to the BagStore API to retrieve the path of the bag

@@ -47,7 +47,7 @@ class BagIndexService extends BagIndexApp with DebugEnhancedLogging {
     info(s"AJP port is $ajpPort")
   }
 
-  def start(): Try[Unit] = Try {
+  def start(): Try[Unit] = {
     info("Starting HTTP service ...")
     server.start()
     initConnection()

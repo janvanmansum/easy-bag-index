@@ -29,7 +29,7 @@ class GetBagFromIndexSpec extends BagIndexDatabaseFixture with GetBagFromIndex {
     val bagId = UUID.randomUUID()
     val time = DateTime.now()
 
-    addBagRelation(bagId, bagId, time) shouldBe a[Success[_]]
+    addBagInfo(bagId, bagId, time) shouldBe a[Success[_]]
 
     inside(getBagSequence(bagId)) {
       case Success(ids) => ids should (have size 1 and contain only bagId)
@@ -45,7 +45,7 @@ class GetBagFromIndexSpec extends BagIndexDatabaseFixture with GetBagFromIndex {
     )
 
     bagIds.zip(times)
-      .map { case (bagId, time) => addBagRelation(bagId, baseId, time) }
+      .map { case (bagId, time) => addBagInfo(bagId, baseId, time) }
       .collectResults shouldBe a[Success[_]]
 
     inside(getBagSequence(baseId)) {
@@ -62,7 +62,7 @@ class GetBagFromIndexSpec extends BagIndexDatabaseFixture with GetBagFromIndex {
     )
 
     bagIds.zip(times)
-      .map { case (bagId, time) => addBagRelation(bagId, baseId, time) }
+      .map { case (bagId, time) => addBagInfo(bagId, baseId, time) }
       .collectResults shouldBe a[Success[_]]
 
     for (bagId <- bagIds) {

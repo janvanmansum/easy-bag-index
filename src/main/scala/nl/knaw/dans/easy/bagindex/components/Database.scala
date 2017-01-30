@@ -62,7 +62,7 @@ trait Database {
     Class.forName(dbDriverClass)
     connection = createConnection
 
-    info(s"Database connected with $dbUrl.")
+    info(s"Database connected with URL = $dbUrl, user = $dbUsername, password = ****")
   }
 
   /**
@@ -87,7 +87,7 @@ trait Database {
     trace(bagId)
 
     val resultSet = for {
-      prepStatement <- managed(connection.prepareStatement("SELECT base FROM BagRelation WHERE bagId=?;"))
+      prepStatement <- managed(connection.prepareStatement("SELECT base FROM bag_info WHERE bagId=?;"))
       _ = prepStatement.setString(1, bagId.toString)
       resultSet <- managed(prepStatement.executeQuery())
     } yield resultSet
@@ -111,7 +111,7 @@ trait Database {
     trace(baseId)
 
     val resultSet = for {
-      prepStatement <- managed(connection.prepareStatement("SELECT bagId FROM BagRelation WHERE base=? ORDER BY created;"))
+      prepStatement <- managed(connection.prepareStatement("SELECT bagId FROM bag_info WHERE base=? ORDER BY created;"))
       _ = prepStatement.setString(1, baseId.toString)
       resultSet <- managed(prepStatement.executeQuery())
     } yield resultSet
@@ -131,11 +131,11 @@ trait Database {
    * @param bagId the bagId corresponding to the relation
    * @return the relation data of the given bagId
    */
-  def getBagRelation(bagId: BagId): Try[BagRelation] = {
+  def getBagInfo(bagId: BagId): Try[BagInfo] = {
     trace(bagId)
 
     val resultSet = for {
-      prepStatement <- managed(connection.prepareStatement("SELECT * FROM BagRelation WHERE bagId=?;"))
+      prepStatement <- managed(connection.prepareStatement("SELECT * FROM bag_info WHERE bagId=?;"))
       _ = prepStatement.setString(1, bagId.toString)
       resultSet <- managed(prepStatement.executeQuery())
     } yield resultSet
@@ -143,7 +143,7 @@ trait Database {
     resultSet
       .map(result =>
         if (result.next())
-          BagRelation(
+          BagInfo(
             bagId = UUID.fromString(result.getString("bagId")),
             baseId = UUID.fromString(result.getString("base")),
             created = DateTime.parse(result.getString("created"), dateTimeFormatter))
@@ -158,16 +158,16 @@ trait Database {
    *
    * @return a list of all bag relations
    */
-  def getAllBagRelations: Try[Seq[BagRelation]] = {
+  def getAllBagRelations: Try[Seq[BagInfo]] = {
     val resultSet = for {
       statement <- managed(connection.createStatement)
-      resultSet <- managed(statement.executeQuery("SELECT * FROM BagRelation;"))
+      resultSet <- managed(statement.executeQuery("SELECT * FROM bag_info;"))
     } yield resultSet
 
     resultSet
       .map(result => Stream.continually(result.next())
         .takeWhile(b => b)
-        .map(_ => BagRelation(
+        .map(_ => BagInfo(
           bagId = UUID.fromString(result.getString("bagId")),
           baseId = UUID.fromString(result.getString("base")),
           created = DateTime.parse(result.getString("created"), dateTimeFormatter)))
@@ -184,10 +184,10 @@ trait Database {
    * @param created the date/time at which the bag was created
    * @return `Success` if the bag relation was added successfully; `Failure` otherwise
    */
-  def addBagRelation(bagId: BagId, baseId: BaseId, created: DateTime): Try[Unit] = {
+  def addBagInfo(bagId: BagId, baseId: BaseId, created: DateTime): Try[Unit] = {
     trace((bagId, baseId, created))
 
-    managed(connection.prepareStatement("INSERT INTO BagRelation VALUES (?, ?, ?);"))
+    managed(connection.prepareStatement("INSERT INTO bag_info VALUES (?, ?, ?);"))
       .map(prepStatement => {
         prepStatement.setString(1, bagId.toString)
         prepStatement.setString(2, baseId.toString)

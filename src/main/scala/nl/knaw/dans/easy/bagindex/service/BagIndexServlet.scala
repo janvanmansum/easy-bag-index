@@ -30,10 +30,8 @@ import scala.xml.PrettyPrinter
 
 case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugEnhancedLogging {
   import app._
-  val externalBaseUri = new URI(properties.getString("bag-index.daemon.external-base-uri"))
-
   get("/") {
-    Ok("I'm alive!")
+    Ok("EASY Bag Index running.")
   }
 
   // GET: http://bag-index/bag-sequence?contains=<bagId>

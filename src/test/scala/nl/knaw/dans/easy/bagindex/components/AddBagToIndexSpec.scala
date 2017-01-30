@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagIdNotFoundException, BagIndexDatabaseFixture, BagRelation }
+import nl.knaw.dans.easy.bagindex.{ BagIdNotFoundException, BagIndexDatabaseFixture, BagInfo }
 
 import scala.util.{ Failure, Success }
 
@@ -31,7 +31,7 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
     }
 
     inside(getAllBagRelations) {
-      case Success(relations) => relations.map { case BagRelation(id, base, _) => (id, base) } should contain ((bagId, bagId))
+      case Success(relations) => relations.map { case BagInfo(id, base, _) => (id, base) } should contain ((bagId, bagId))
     }
 
     bagId
@@ -46,7 +46,7 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
     }
 
     inside(getAllBagRelations) {
-      case Success(relations) => relations.map { case BagRelation(id, base, _) => (id, base) } should contain ((bagId, baseId))
+      case Success(relations) => relations.map { case BagInfo(id, base, _) => (id, base) } should contain ((bagId, baseId))
     }
 
     (bagId, baseId)
@@ -61,7 +61,7 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
     }
 
     inside(getAllBagRelations) {
-      case Success(relations) => relations.map { case BagRelation(id, base, _) => (id, base) } should contain ((bagId, superBaseId))
+      case Success(relations) => relations.map { case BagInfo(id, base, _) => (id, base) } should contain ((bagId, superBaseId))
     }
 
     (bagId, baseId, superBaseId)

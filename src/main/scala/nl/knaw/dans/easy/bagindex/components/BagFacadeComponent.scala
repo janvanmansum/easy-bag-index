@@ -23,6 +23,7 @@ import nl.knaw.dans.easy.bagindex.BagNotFoundException
 import scala.collection.JavaConverters.mapAsScalaMapConverter
 import scala.util.{ Failure, Try }
 
+// TODO: (see also: easy-bag-store, easy-archive-bag) Candidate for new library easy-bagit-lib (a facade over the LOC lib)
 trait BagFacadeComponent {
 
   val bagFacade: BagFacade

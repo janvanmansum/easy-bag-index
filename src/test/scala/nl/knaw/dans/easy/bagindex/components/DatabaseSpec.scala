@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagIdNotFoundException, BagIndexDatabaseFixture, BagRelation }
+import nl.knaw.dans.easy.bagindex.{ BagIdNotFoundException, BagIndexDatabaseFixture, BagInfo }
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 import org.joda.time.DateTime
 
@@ -34,7 +34,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     )
 
     bagIds.zip(times)
-      .map { case (bagId, time) => addBagRelation(bagId, baseId, time) }
+      .map { case (bagId, time) => addBagInfo(bagId, baseId, time) }
       .collectResults shouldBe a[Success[_]]
 
     for (bagId <- bagIds) {
@@ -56,7 +56,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     val bagId = UUID.randomUUID()
     val time = DateTime.now()
 
-    addBagRelation(bagId, bagId, time) shouldBe a[Success[_]]
+    addBagInfo(bagId, bagId, time) shouldBe a[Success[_]]
 
     inside(getAllBagsWithBase(bagId)) {
       case Success(ids) => ids should (have size 1 and contain only bagId)
@@ -83,7 +83,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     List(
       (bagIds1.zip(times1), baseId1),
       (bagIds2.zip(times2), baseId2))
-      .flatMap { case (xs, base) => xs.map { case (bagId, time) => addBagRelation(bagId, base, time) }}
+      .flatMap { case (xs, base) => xs.map { case (bagId, time) => addBagInfo(bagId, base, time) }}
       .collectResults shouldBe a[Success[_]]
 
     inside(getAllBagsWithBase(baseId1)) {
@@ -103,12 +103,12 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     )
 
     bagIds.zip(times)
-      .map { case (bagId, time) => addBagRelation(bagId, baseId, time) }
+      .map { case (bagId, time) => addBagInfo(bagId, baseId, time) }
       .collectResults shouldBe a[Success[_]]
 
     for ((bagId, created) <- bagIds.zip(times)) {
-      inside(getBagRelation(bagId)) {
-        case Success(BagRelation(bag, base, time)) =>
+      inside(getBagInfo(bagId)) {
+        case Success(BagInfo(bag, base, time)) =>
           bag shouldBe bagId
           base shouldBe baseId
           time shouldBe created
@@ -119,7 +119,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
   it should "return a BagIdNotFoundException when the given bagId does not exist in the database" in {
     // Note: the database is empty at this point!
     val someBagId = UUID.randomUUID()
-    inside(getBagRelation(someBagId)) {
+    inside(getBagInfo(someBagId)) {
       case Failure(BagIdNotFoundException(id)) => id shouldBe someBagId
     }
   }
@@ -133,10 +133,10 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     )
 
     bagIds.zip(times)
-      .map { case (bagId, time) => addBagRelation(bagId, baseId, time) }
+      .map { case (bagId, time) => addBagInfo(bagId, baseId, time) }
       .collectResults shouldBe a[Success[_]]
 
-    val rel1 :: rel2 :: rels = bagIds.zip(times).map { case (bagId, time) => BagRelation(bagId, baseId, time) }
+    val rel1 :: rel2 :: rels = bagIds.zip(times).map { case (bagId, time) => BagInfo(bagId, baseId, time) }
 
     inside(getAllBagRelations) {
       case Success(relations) => relations should contain allOf(rel1, rel2, rels: _*)
@@ -148,8 +148,8 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     val baseId = UUID.randomUUID()
     val time = DateTime.now()
 
-    val result1 = addBagRelation(bagId, baseId, time)
-    val result2 = addBagRelation(bagId, baseId, time)
+    val result1 = addBagInfo(bagId, baseId, time)
+    val result2 = addBagInfo(bagId, baseId, time)
 
     result1 shouldBe a[Success[_]]
     inside(result2) {
@@ -157,7 +157,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     }
 
     inside(getAllBagRelations) {
-      case Success(relations) => relations should contain (BagRelation(bagId, baseId, time))
+      case Success(relations) => relations should contain (BagInfo(bagId, baseId, time))
     }
   }
 }

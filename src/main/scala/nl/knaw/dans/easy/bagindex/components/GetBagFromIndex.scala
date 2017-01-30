@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.easy.bagindex.components
 
-import nl.knaw.dans.easy.bagindex.{ BagId, BagRelation }
+import nl.knaw.dans.easy.bagindex.{ BagId, BagInfo }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 import scala.util.Try
@@ -38,17 +38,5 @@ trait GetBagFromIndex {
       baseId <- getBaseBagId(bagId)
       seq <- getAllBagsWithBase(baseId)
     } yield seq
-  }
-
-  /**
-   * Returns the `Relation` object for the given bagId if it is present in the database.
-   * If the bagId does not exist, a `BagIdNotFoundException` is returned.
-   *
-   * @param bagId the bagId corresponding to the relation
-   * @return the relation data of the given bagId
-   */
-  def getBagInfo(bagId: BagId): Try[BagRelation] = {
-    trace(bagId)
-    getBagRelation(bagId)
   }
 }

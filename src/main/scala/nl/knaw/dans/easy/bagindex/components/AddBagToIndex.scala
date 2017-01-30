@@ -34,7 +34,7 @@ trait AddBagToIndex {
    */
   def addBase(bagId: BagId, created: Option[DateTime] = None): Try[BaseId] = {
     trace((bagId, created))
-    addBagRelation(bagId, bagId, created.getOrElse(DateTime.now())).map(_ => bagId)
+    addBagInfo(bagId, bagId, created.getOrElse(DateTime.now())).map(_ => bagId)
   }
 
   /**
@@ -52,7 +52,7 @@ trait AddBagToIndex {
     trace((bagId, baseId, created))
     for {
       superBase <- getBaseBagId(baseId)
-      _ <- addBagRelation(bagId, superBase, created.getOrElse(DateTime.now()))
+      _ <- addBagInfo(bagId, superBase, created.getOrElse(DateTime.now()))
     } yield superBase
   }
 }
