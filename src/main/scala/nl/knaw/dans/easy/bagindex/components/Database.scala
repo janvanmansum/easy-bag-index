@@ -15,7 +15,6 @@
  */
 package nl.knaw.dans.easy.bagindex.components
 
-import java.sql.{ Connection, DriverManager }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex._
@@ -27,54 +26,7 @@ import scala.collection.immutable.Seq
 import scala.util.Try
 
 trait Database {
-  this: DebugEnhancedLogging =>
-  import logger._
-
-  private var connection: Connection = _
-
-  val dbDriverClass: String
-  val dbUrl: String
-  val dbUsername: Option[String]
-  val dbPassword: Option[String]
-
-  /**
-   * Hook for creating a connection. If a username and password is provided, these will be taken
-   * into account when creating the connection; otherwise the connection is created without
-   * username and password.
-   *
-   * @return the connection
-   */
-  protected def createConnection: Connection = {
-    val optConn = for {
-      username <- dbUsername
-      password <- dbPassword
-    } yield DriverManager.getConnection(dbUrl, username, password)
-
-    optConn.getOrElse(DriverManager.getConnection(dbUrl))
-  }
-
-  /**
-   * Establishes the connection with the database
-   */
-  def initConnection(): Try[Unit] = Try {
-    info("Creating database connection ...")
-
-    Class.forName(dbDriverClass)
-    connection = createConnection
-
-    info(s"Database connected with URL = $dbUrl, user = $dbUsername, password = ****")
-  }
-
-  /**
-   * Close the database's connection.
-   *
-   * @return `Success` if the closing went well, `Failure` otherwise
-   */
-  def closeConnection(): Try[Unit] = Try {
-    info("Closing database connection ...")
-    connection.close()
-    info("Database connection closed")
-  }
+  this: DatabaseAccess with DebugEnhancedLogging =>
 
   /**
    * Return the baseId of the given bagId if the latter exists.
@@ -158,7 +110,7 @@ trait Database {
    *
    * @return a list of all bag relations
    */
-  def getAllBagRelations: Try[Seq[BagInfo]] = {
+  def getAllBagInfos: Try[Seq[BagInfo]] = {
     val resultSet = for {
       statement <- managed(connection.createStatement)
       resultSet <- managed(statement.executeQuery("SELECT * FROM bag_info;"))
@@ -185,7 +137,7 @@ trait Database {
    * @return `Success` if the bag relation was added successfully; `Failure` otherwise
    */
   def addBagInfo(bagId: BagId, baseId: BaseId, created: DateTime): Try[Unit] = {
-    trace((bagId, baseId, created))
+    trace(bagId, baseId, created)
 
     managed(connection.prepareStatement("INSERT INTO bag_info VALUES (?, ?, ?);"))
       .map(prepStatement => {

@@ -33,7 +33,7 @@ trait AddBagToIndex {
    * @return `Success` if the bagId was added to the index; `Failure` otherwise
    */
   def addBase(bagId: BagId, created: Option[DateTime] = None): Try[BaseId] = {
-    trace((bagId, created))
+    trace(bagId, created)
     addBagInfo(bagId, bagId, created.getOrElse(DateTime.now())).map(_ => bagId)
   }
 
@@ -49,7 +49,7 @@ trait AddBagToIndex {
    * @return the baseId of the super-base if the bagId was added to the index; `Failure` otherwise
    */
   def add(bagId: BagId, baseId: BaseId, created: Option[DateTime] = None): Try[BaseId] = {
-    trace((bagId, baseId, created))
+    trace(bagId, baseId, created)
     for {
       superBase <- getBaseBagId(baseId)
       _ <- addBagInfo(bagId, superBase, created.getOrElse(DateTime.now()))

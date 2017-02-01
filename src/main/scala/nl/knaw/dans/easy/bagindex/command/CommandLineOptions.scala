@@ -17,10 +17,13 @@ package nl.knaw.dans.easy.bagindex.command
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagId, BaseId, Version }
+import nl.knaw.dans.easy.bagindex.{ BagId, Version }
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.joda.time.DateTime
 import org.rogach.scallop.{ ScallopConf, ScallopOption, Subcommand, singleArgConverter }
+
+import scala.annotation.tailrec
+import scala.io.StdIn
 
 class CommandLineOptions(args: Array[String], properties: PropertiesConfiguration) extends ScallopConf(args) {
   appendDefaultToDescription = true
@@ -28,7 +31,6 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
 
   printedName = "easy-bag-index"
   private val _________ = " " * printedName.length
-  private val SUBCOMMAND_SEPARATOR = "---\n"
   version(s"$printedName v${Version()}")
   banner(
     s"""
@@ -37,7 +39,7 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
       |Usage:
       |
       |$printedName \\
-      |${_________}  | add --base|-b --created|-c <bagId>
+      |${_________}  | index [bagId]
       |
       |Options:
     """.stripMargin)
@@ -45,21 +47,41 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
   private implicit val uuidConverter = singleArgConverter[UUID](UUID.fromString)
   private implicit val dateTimeConverter = singleArgConverter[DateTime](DateTime.parse)
 
-  val add = new Subcommand("add") {
-    descr("Adds a bag identifier to the index")
+  val index = new Subcommand("index") {
+    descr("Adds one bag or the whole bag-store to the index")
     val bagId: ScallopOption[BagId] = trailArg[UUID](name = "bagId",
-      descr = "the bag identifier to be added")
-    val baseId: ScallopOption[BaseId] = opt[UUID](name = "base",
-      descr = "the bag identifier of the base bag",
-      short = 'b')
-    val created: ScallopOption[DateTime] = opt[DateTime](name = "created",
-      descr = "the created of the creation of the bag",
-      short = 'c')
+      descr = "the bag identifier to be added",
+      required = false)
   }
 
-  addSubcommand(add)
+  addSubcommand(index)
 
   footer("")
+
+  object interaction {
+    /**
+     * Interactive command line interface to ask whether the user is sure to index the whole bag-store
+     * and thereby delete all current data in the bag-index.
+     *
+     * @return `true` if the user wants to proceed, `false` otherwise
+     */
+    def deleteBeforeIndexing(): Boolean = {
+      @tailrec
+      def recursiveAsk(): Boolean = {
+        StdIn.readLine().toLowerCase match {
+          case "yes" => true
+          case "no" => false
+          case _ =>
+            println("either use 'Yes' or 'No'")
+            recursiveAsk()
+        }
+      }
+
+      println("Before the bag-store is indexed, the current index needs to be deleted?")
+      println("Do you want to proceed? (Yes/No)")
+      recursiveAsk()
+    }
+  }
 }
 object CommandLineOptions {
   def apply(args: Array[String], properties: PropertiesConfiguration): CommandLineOptions = new CommandLineOptions(args, properties)

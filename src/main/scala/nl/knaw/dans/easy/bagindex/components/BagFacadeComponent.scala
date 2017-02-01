@@ -15,20 +15,28 @@
  */
 package nl.knaw.dans.easy.bagindex.components
 
+import java.net.URI
 import java.nio.file.Path
+import java.util.UUID
 
 import gov.loc.repository.bagit.{ Bag, BagFactory }
-import nl.knaw.dans.easy.bagindex.BagNotFoundException
+import nl.knaw.dans.easy.bagindex.{ BagNotFoundException, BaseId, InvalidIsVersionOfException, NoBagInfoFoundException, dateTimeFormatter }
+import org.joda.time.DateTime
 
 import scala.collection.JavaConverters.mapAsScalaMapConverter
-import scala.util.{ Failure, Try }
+import scala.util.{ Failure, Success, Try }
 
 // TODO: (see also: easy-bag-store, easy-archive-bag) Candidate for new library easy-bagit-lib (a facade over the LOC lib)
 trait BagFacadeComponent {
 
   val bagFacade: BagFacade
 
+  val IS_VERSION_OF = "Is-Version-Of"
+  val CREATED = "Created"
+
   trait BagFacade {
+    def getIndexRelevantBagInfo(bagDir: Path): Try[(Option[BaseId], Option[DateTime])]
+
     def getBagInfo(bagDir: Path): Try[Map[String, String]]
   }
 }
@@ -36,14 +44,37 @@ trait BagFacadeComponent {
 trait Bagit4FacadeComponent extends BagFacadeComponent {
   class Bagit4Facade(bagFactory: BagFactory = new BagFactory) extends BagFacade {
 
+    def getIndexRelevantBagInfo(bagDir: Path): Try[(Option[BaseId], Option[DateTime])] = {
+      for {
+        info <- getBagInfo(bagDir)
+        baseId <- info.get(IS_VERSION_OF)
+          .map(ivo => Try(new URI(ivo)).flatMap(getIsVersionOfFromUri(bagDir)).map(Option(_)))
+          .getOrElse(Success(None))
+        created = info.get(CREATED).map(DateTime.parse(_, dateTimeFormatter))
+      } yield (baseId, created)
+    }
+
     def getBagInfo(bagDir: Path): Try[Map[String, String]] = {
       for {
         bag <- getBag(bagDir)
-      } yield bag.getBagInfoTxt.asScala.toMap
+        info <- Option(bag.getBagInfoTxt) // this call returns null if there is not bag-info.txt
+          .map(map => Success(map.asScala.toMap))
+          .getOrElse(Failure(NoBagInfoFoundException(bagDir)))
+      } yield info
     }
 
     private def getBag(bagDir: Path): Try[Bag] = Try {
       bagFactory.createBag(bagDir.toFile, BagFactory.Version.V0_97, BagFactory.LoadOption.BY_MANIFESTS)
     }.recoverWith { case cause => Failure(BagNotFoundException(bagDir, cause)) }
+
+    // TODO: canditate for easy-bagit-lib
+    private def getIsVersionOfFromUri(bagDir: Path)(uri: URI): Try[UUID] = {
+      if(uri.getScheme == "urn") {
+        val uuidPart = uri.getSchemeSpecificPart
+        val parts = uuidPart.split(':')
+        if (parts.length != 2) Failure(InvalidIsVersionOfException(bagDir, uri.toASCIIString))
+        else Try { UUID.fromString(parts(1)) }
+      } else Failure(InvalidIsVersionOfException(bagDir, uri.toASCIIString))
+    }
   }
 }

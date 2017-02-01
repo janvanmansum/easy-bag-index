@@ -17,10 +17,11 @@ package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagIdNotFoundException, BagIndexDatabaseFixture, BagInfo }
+import nl.knaw.dans.easy.bagindex.{ BagId, BagIdNotFoundException, BagIndexDatabaseFixture, BagInfo }
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 import org.joda.time.DateTime
 
+import scala.collection.immutable.Seq
 import scala.util.{ Failure, Success }
 
 class DatabaseSpec extends BagIndexDatabaseFixture with Database {
@@ -94,7 +95,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     }
   }
 
-  "getBagRelation" should "return the relation object for the given bagId" in {
+  "getBagInfo" should "return the relation object for the given bagId" in {
     val bagIds@(baseId :: _) = List.fill(3)(UUID.randomUUID())
     val times = List(
       DateTime.parse("1992-07-30T16:00:00"),
@@ -124,7 +125,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     }
   }
 
-  "addBagRelation" should "insert a new bag relation into the database" in {
+  "addBagInfo" should "insert a new bag relation into the database" in {
     val bagIds@(baseId :: _) = List.fill(3)(UUID.randomUUID())
     val times = List(
       DateTime.parse("1992-07-30T16:00:00"),
@@ -138,7 +139,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
 
     val rel1 :: rel2 :: rels = bagIds.zip(times).map { case (bagId, time) => BagInfo(bagId, baseId, time) }
 
-    inside(getAllBagRelations) {
+    inside(getAllBagInfos) {
       case Success(relations) => relations should contain allOf(rel1, rel2, rels: _*)
     }
   }
@@ -156,7 +157,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
       case Failure(e) => e.getMessage should include ("UNIQUE constraint failed")
     }
 
-    inside(getAllBagRelations) {
+    inside(getAllBagInfos) {
       case Success(relations) => relations should contain (BagInfo(bagId, baseId, time))
     }
   }

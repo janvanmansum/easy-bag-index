@@ -23,7 +23,7 @@ import org.joda.time.format.ISODateTimeFormat
 
 import scala.util.{ Failure, Success }
 
-class AddBagFromBagStoreSpec extends BagStoreFixture with BagIndexDatabaseFixture with Bagit4FacadeComponent with AddBagToIndex with AddBagFromBagStore {
+class AddBagFromBagStoreSpec extends BagStoreFixture with BagIndexDatabaseFixture with Bagit4Fixture with AddBagToIndex with AddBagFromBagStore {
 
   private def assertBagInfoNotInDatabase(bagId: BagId): Unit = {
     inside(getBagInfo(bagId)) {

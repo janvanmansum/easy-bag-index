@@ -18,7 +18,7 @@ package nl.knaw.dans.easy.bagindex.command
 import nl.knaw.dans.easy.bagindex.{ BagIndexApp, TryExtensions }
 
 import scala.language.reflectiveCalls
-import scala.util.{ Failure, Try }
+import scala.util.{ Failure, Success, Try }
 
 object Command extends App with BagIndexApp {
 
@@ -30,13 +30,17 @@ object Command extends App with BagIndexApp {
   // TODO continue with the rest (command parsing etc.)
 
   val result: Try[String] = opts.subcommand match {
-    case Some(cmd @ opts.add) =>
-      val bagId = cmd.bagId()
-      val maybeBaseId = cmd.baseId.toOption
-      val maybeCreated = cmd.created.toOption
-
-      maybeBaseId.map(base => add(bagId, base, maybeCreated).map(superBase => s"Added bagId $bagId with base $superBase"))
-        .getOrElse(addBase(bagId, maybeCreated).map(_ => s"Added bagId $bagId as base"))
+    case Some(cmd @ opts.index) =>
+      cmd.bagId.toOption
+        // add a single bag to the bag-index
+        .map(addFromBagStore(_).map(_ => s"Added bag with bagId ${ cmd.bagId() }"))
+        // add the whole bag-store to the bag-index
+        .getOrElse {
+          if (opts.interaction.deleteBeforeIndexing())
+            indexBagStore().map(_ => "indexed the bag-store successfully")
+          else
+            Success("indexing did not take place")
+        }
     case _ => Failure(new IllegalArgumentException(s"Unknown command: ${opts.subcommand}"))
   }
 

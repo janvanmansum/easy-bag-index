@@ -25,7 +25,10 @@ import org.apache.commons.configuration.PropertiesConfiguration
 trait BagIndexApp extends AddBagToIndex
   with GetBagFromIndex
   with AddBagFromBagStore
+  with IndexBagStore
+  with DatabaseAccess
   with Database
+  with IndexBagStoreDatabase
   with BagStoreAccess
   with Bagit4FacadeComponent
   with DebugEnhancedLogging {

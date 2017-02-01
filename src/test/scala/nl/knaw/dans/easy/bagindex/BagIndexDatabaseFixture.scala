@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagindex
 
 import java.sql.Connection
 
-import nl.knaw.dans.easy.bagindex.components.Database
+import nl.knaw.dans.easy.bagindex.components.{ Database, DatabaseAccess }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalatest.BeforeAndAfter
 
@@ -25,6 +25,7 @@ import scala.io.Source
 
 trait BagIndexDatabaseFixture extends TestSupportFixture
   with BeforeAndAfter
+  with DatabaseAccess
   with Database
   with DebugEnhancedLogging {
 
