@@ -15,6 +15,7 @@
  */
 package nl.knaw.dans.easy.bagindex.components
 
+import java.sql.Connection
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex._
@@ -26,16 +27,17 @@ import scala.collection.immutable.Seq
 import scala.util.Try
 
 trait Database {
-  this: DatabaseAccess with DebugEnhancedLogging =>
+  this: DebugEnhancedLogging =>
 
   /**
    * Return the baseId of the given bagId if the latter exists.
    * If the bagId does not exist, a `BagIdNotFoundException` is returned.
    *
    * @param bagId the bagId for which the base bagId needs to be returned
+   * @param connection the connection to the database on which this query needs to be run
    * @return the baseId of the given bagId if it exists; failure otherwise
    */
-  def getBaseBagId(bagId: BagId): Try[BaseId] = {
+  def getBaseBagId(bagId: BagId)(implicit connection: Connection): Try[BaseId] = {
     trace(bagId)
 
     val resultSet = for {
@@ -57,9 +59,10 @@ trait Database {
    * Returns a sequence of all bagIds that have the given baseId as their base, ordered by the 'created' timestamp.
    *
    * @param baseId the baseId used during this search
+   * @param connection the connection to the database on which this query needs to be run
    * @return a sequence of all bagIds with a given baseId
    */
-  def getAllBagsWithBase(baseId: BaseId): Try[Seq[BagId]] = {
+  def getAllBagsWithBase(baseId: BaseId)(implicit connection: Connection): Try[Seq[BagId]] = {
     trace(baseId)
 
     val resultSet = for {
@@ -81,9 +84,10 @@ trait Database {
    * If the bagId does not exist, a `BagIdNotFoundException` is returned.
    *
    * @param bagId the bagId corresponding to the relation
+   * @param connection the connection to the database on which this query needs to be run
    * @return the relation data of the given bagId
    */
-  def getBagInfo(bagId: BagId): Try[BagInfo] = {
+  def getBagInfo(bagId: BagId)(implicit connection: Connection): Try[BagInfo] = {
     trace(bagId)
 
     val resultSet = for {
@@ -108,9 +112,10 @@ trait Database {
    * Returns a sequence of all bag relations that are present in the database.
    * '''Warning:''' this may load large amounts of data into memory.
    *
+   * @param connection the connection to the database on which this query needs to be run
    * @return a list of all bag relations
    */
-  def getAllBagInfos: Try[Seq[BagInfo]] = {
+  def getAllBagInfos(implicit connection: Connection): Try[Seq[BagInfo]] = {
     val resultSet = for {
       statement <- managed(connection.createStatement)
       resultSet <- managed(statement.executeQuery("SELECT * FROM bag_info;"))
@@ -134,9 +139,10 @@ trait Database {
    * @param bagId the unique bag identifier
    * @param baseId the base bagId of the bagId
    * @param created the date/time at which the bag was created
+   * @param connection the connection to the database on which this action needs to be applied
    * @return `Success` if the bag relation was added successfully; `Failure` otherwise
    */
-  def addBagInfo(bagId: BagId, baseId: BaseId, created: DateTime): Try[Unit] = {
+  def addBagInfo(bagId: BagId, baseId: BaseId, created: DateTime)(implicit connection: Connection): Try[Unit] = {
     trace(bagId, baseId, created)
 
     managed(connection.prepareStatement("INSERT INTO bag_info VALUES (?, ?, ?);"))

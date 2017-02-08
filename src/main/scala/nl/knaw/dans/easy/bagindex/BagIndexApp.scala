@@ -35,16 +35,19 @@ trait BagIndexApp extends AddBagToIndex
 
   val properties = new PropertiesConfiguration(new File(System.getProperty("app.home"), "cfg/application.properties"))
 
-  val dbDriverClass: String = properties.getString("bag-index.database.driver-class")
-  val dbUrl: String = properties.getString("bag-index.database.url")
-  val dbUsername: Option[String] = Option(properties.getString("bag-index.database.username"))
-  val dbPassword: Option[String] = Option(properties.getString("bag-index.database.password"))
-  val bagStoreBaseDir: Path = Paths.get(properties.getString("bag-index.bag-store.base-dir")).toAbsolutePath
-  val bagFacade = new Bagit4Facade()
+  override val dbDriverClassName: String = properties.getString("bag-index.database.driver-class")
+  override val dbUrl: String = properties.getString("bag-index.database.url")
+  override val dbUsername: Option[String] = Option(properties.getString("bag-index.database.username"))
+  override val dbPassword: Option[String] = Option(properties.getString("bag-index.database.password"))
+  override val bagStoreBaseDir: Path = Paths.get(properties.getString("bag-index.bag-store.base-dir")).toAbsolutePath
+  override val bagFacade = new Bagit4Facade()
 
   def validateSettings(): Unit = {
     def userPasswordSettings = {
-      dbUsername.isEmpty && dbPassword.isEmpty || dbUsername.isDefined && dbPassword.isDefined
+      (dbUsername, dbPassword) match {
+        case (Some(_), Some(_)) | (None, None) => true
+        case _ => false
+      }
     }
     assert(userPasswordSettings, "database username and password should be either both defined or not defined")
     assert(Files.isReadable(bagStoreBaseDir), s"Non-existing or non-readable bag-store: $bagStoreBaseDir")

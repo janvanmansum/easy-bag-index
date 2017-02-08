@@ -15,59 +15,66 @@
  */
 package nl.knaw.dans.easy.bagindex.components
 
-import java.sql.{ Connection, DriverManager }
+import java.sql.{ Connection, SQLException }
 
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import nl.knaw.dans.easy.bagindex._
+import org.apache.commons.dbcp2.BasicDataSource
+import resource._
 
-import scala.util.Try
+import scala.util.control.NonFatal
+import scala.util.{ Failure, Try }
 
 trait DatabaseAccess {
   this: DebugEnhancedLogging =>
   import logger._
 
-  protected var connection: Connection = _
+  private var pool: BasicDataSource = _
 
-  val dbDriverClass: String
+  val dbDriverClassName: String
   val dbUrl: String
   val dbUsername: Option[String]
   val dbPassword: Option[String]
 
-  /**
-   * Hook for creating a connection. If a username and password is provided, these will be taken
-   * into account when creating the connection; otherwise the connection is created without
-   * username and password.
-   *
-   * @return the connection
-   */
-  protected def createConnection: Connection = {
-    val optConn = for {
-      username <- dbUsername
-      password <- dbPassword
-    } yield DriverManager.getConnection(dbUrl, username, password)
+  protected def createConnectionPool: BasicDataSource = {
+    val source = new BasicDataSource
+    source.setDriverClassName(dbDriverClassName)
+    source.setUrl(dbUrl)
+    dbUsername.foreach(source.setUsername)
+    dbPassword.foreach(source.setPassword)
 
-    optConn.getOrElse(DriverManager.getConnection(dbUrl))
+    source
   }
 
-  /**
-   * Establishes the connection with the database
-   */
-  def initConnection(): Try[Unit] = Try {
+  def initConnectionPool(): Try[Unit] = Try {
     info("Creating database connection ...")
-
-    Class.forName(dbDriverClass)
-    connection = createConnection
-
+    pool = createConnectionPool
     info(s"Database connected with URL = $dbUrl, user = $dbUsername, password = ****")
   }
 
-  /**
-   * Close the database's connection.
-   *
-   * @return `Success` if the closing went well, `Failure` otherwise
-   */
-  def closeConnection(): Try[Unit] = Try {
+  def closeConnectionPool(): Try[Unit] = Try {
     info("Closing database connection ...")
-    connection.close()
+    pool.close()
     info("Database connection closed")
+  }
+
+  // TODO test and document
+  def doTransaction[T](f: Connection => Try[T]): Try[T] = {
+    managed(pool.getConnection)
+      .map(connection => {
+        connection.setAutoCommit(false)
+        val savepoint = connection.setSavepoint()
+
+        f(connection)
+          .ifSuccess(_ => {
+            connection.commit()
+            connection.setAutoCommit(true)
+          })
+          .recoverWith {
+            case NonFatal(e) => Try { connection.rollback(savepoint) }.flatMap(_ => Failure(e))
+          }
+      })
+      .tried
+      .flatten
   }
 }

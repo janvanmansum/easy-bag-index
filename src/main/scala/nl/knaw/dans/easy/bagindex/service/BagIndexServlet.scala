@@ -15,7 +15,6 @@
  */
 package nl.knaw.dans.easy.bagindex.service
 
-import java.net.URI
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex.{ BagIndexApp, _ }
@@ -39,8 +38,10 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
   // the data is returned as a newline separated (text/plain) String
   get("/bag-sequence") {
     contentType = "text/plain"
-    Try { UUID.fromString(params("contains")) }
-      .flatMap(app.getBagSequence)
+    doTransaction(implicit c => {
+      Try { UUID.fromString(params("contains")) }
+        .flatMap(app.getBagSequence)
+    })
       .map(ids => Ok(ids.mkString("\n")))
       .onError(defaultErrorHandling)
   }
@@ -49,34 +50,36 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
   // given a bagId, return the relation data corresponding to this bagId
   // the data is returned as JSON by default or XML when specified (content-type application/xml or text/xml)
   get("/bags/:bagId") {
-    Try { UUID.fromString(params("bagId")) }
-      .flatMap(app.getBagInfo)
-      .map(relation => Ok {
-        request.getHeader("Accept") match {
-          case accept@("application/xml" | "text/xml") =>
-            contentType = accept
-            new PrettyPrinter(80, 4).format {
-              // @formatter:off
-              <bag-info>
-                <bag-id>{relation.bagId.toString}</bag-id>
-                <base-id>{relation.baseId.toString}</base-id>
-                <created>{relation.created.toString(dateTimeFormatter)}</created>
-              </bag-info>
-              // @formatter:on
-            }
-          case _ =>
-            contentType = "application/json"
-            pretty(render {
-              // @formatter:off
-              "bag-info" -> {
-                ("bag-id" -> relation.bagId.toString) ~
-                ("base-id" -> relation.baseId.toString) ~
-                ("created" -> relation.created.toString(dateTimeFormatter))
+    doTransaction(implicit c => {
+      Try { UUID.fromString(params("bagId")) }
+        .flatMap(app.getBagInfo)
+        .map(relation =>
+          request.getHeader("Accept") match {
+            case accept @ ("application/xml" | "text/xml") =>
+              contentType = accept
+              new PrettyPrinter(80, 4).format {
+                // @formatter:off
+                <bag-info>
+                  <bag-id>{relation.bagId.toString}</bag-id>
+                  <base-id>{relation.baseId.toString}</base-id>
+                  <created>{relation.created.toString(dateTimeFormatter)}</created>
+                </bag-info>
+                // @formatter:on
               }
-              // @formatter:on
-            })
-        }
-      })
+            case _ =>
+              contentType = "application/json"
+              pretty(render {
+                // @formatter:off
+                "bag-info" -> {
+                  ("bag-id" -> relation.bagId.toString) ~
+                  ("base-id" -> relation.baseId.toString) ~
+                  ("created" -> relation.created.toString(dateTimeFormatter))
+                }
+                // @formatter:on
+              })
+          })
+    })
+      .map(Ok(_))
       .onError(defaultErrorHandling)
   }
 
@@ -84,8 +87,10 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
   // get the bag with the given bagId from the bag-store, read bag-info.txt and get the base and 'created' timestamp properties
   // based on this, add a record to the index/database
   put("/bags/:bagId") {
-    Try { UUID.fromString(params("bagId")) }
-      .flatMap(addFromBagStore)
+    doTransaction(implicit connection => {
+      Try { UUID.fromString(params("bagId")) }
+        .flatMap(addFromBagStore)
+    })
       .map(_ => Created())
       .onError(defaultErrorHandling)
   }

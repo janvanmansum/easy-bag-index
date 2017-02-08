@@ -17,11 +17,10 @@ package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagId, BagIdNotFoundException, BagIndexDatabaseFixture, BagInfo }
+import nl.knaw.dans.easy.bagindex.{ BagIdNotFoundException, BagIndexDatabaseFixture, BagInfo }
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 import org.joda.time.DateTime
 
-import scala.collection.immutable.Seq
 import scala.util.{ Failure, Success }
 
 class DatabaseSpec extends BagIndexDatabaseFixture with Database {

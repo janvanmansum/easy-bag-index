@@ -50,12 +50,12 @@ class BagIndexService extends BagIndexApp with DebugEnhancedLogging {
   def start(): Try[Unit] = {
     info("Starting HTTP service ...")
     server.start()
-    initConnection()
+    initConnectionPool()
   }
 
   def stop(): Try[Unit] = Try {
     info("Stopping HTTP service ...")
-    closeConnection()
+    closeConnectionPool()
     server.stop()
   }
 

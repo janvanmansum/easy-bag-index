@@ -22,30 +22,31 @@ import scala.util.{ Failure, Success, Try }
 
 object Command extends App with BagIndexApp {
 
-  initConnection()
+  initConnectionPool()
 
   val opts = CommandLineOptions(args, properties)
   opts.verify()
 
   // TODO continue with the rest (command parsing etc.)
 
-  val result: Try[String] = opts.subcommand match {
-    case Some(cmd @ opts.index) =>
-      cmd.bagId.toOption
-        // add a single bag to the bag-index
-        .map(addFromBagStore(_).map(_ => s"Added bag with bagId ${ cmd.bagId() }"))
-        // add the whole bag-store to the bag-index
-        .getOrElse {
+  doTransaction(implicit connection => {
+    opts.subcommand match {
+      case Some(cmd @ opts.index) =>
+        cmd.bagId.toOption
+          // add a single bag to the bag-index
+          .map(addFromBagStore(_).map(_ => s"Added bag with bagId ${ cmd.bagId() }"))
+          // add the whole bag-store to the bag-index
+          .getOrElse {
           if (opts.interaction.deleteBeforeIndexing())
             indexBagStore().map(_ => "indexed the bag-store successfully")
           else
             Success("indexing did not take place")
         }
-    case _ => Failure(new IllegalArgumentException(s"Unknown command: ${opts.subcommand}"))
-  }
-
-  result.map(msg => println(s"OK: $msg"))
+      case _ => Failure(new IllegalArgumentException(s"Unknown command: ${opts.subcommand}"))
+    }
+  })
+    .map(msg => println(s"OK: $msg"))
     .onError(e => println(s"FAILED: ${e.getMessage}"))
 
-  closeConnection()
+  closeConnectionPool()
 }

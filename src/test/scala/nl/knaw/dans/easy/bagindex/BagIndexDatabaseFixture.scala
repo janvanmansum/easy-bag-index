@@ -19,9 +19,13 @@ import java.sql.Connection
 
 import nl.knaw.dans.easy.bagindex.components.{ Database, DatabaseAccess }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.apache.commons.dbcp2.BasicDataSource
 import org.scalatest.BeforeAndAfter
 
 import scala.io.Source
+import resource._
+
+import scala.util.Success
 
 trait BagIndexDatabaseFixture extends TestSupportFixture
   with BeforeAndAfter
@@ -29,30 +33,35 @@ trait BagIndexDatabaseFixture extends TestSupportFixture
   with Database
   with DebugEnhancedLogging {
 
-  val dbDriverClass: String = "org.sqlite.JDBC"
-  val dbUrl: String = "jdbc:sqlite::memory:"
-  val dbUsername = Option.empty[String]
-  val dbPassword = Option.empty[String]
+  override val dbDriverClassName: String = "org.sqlite.JDBC"
+  override val dbUrl: String = "jdbc:sqlite::memory:"
+  override val dbUsername = Option.empty[String]
+  override val dbPassword = Option.empty[String]
 
-  override protected def createConnection: Connection = {
-    val con = super.createConnection
+  implicit var connection: Connection = _
 
-    val query = Source.fromFile(getClass.getClassLoader.getResource("database/bag-index.sql").toURI).mkString
-    debug(s"Executing query: $query")
-    val statement = con.createStatement
-    debug("Statement created.")
-    statement.executeUpdate(query)
-    debug("Statement executed.")
-    statement.close()
+  override protected def createConnectionPool: BasicDataSource = {
+    val pool = super.createConnectionPool
 
-    con
+    managed(pool.getConnection)
+      .flatMap(connection => managed(connection.createStatement))
+      .and(managed(Source.fromFile(getClass.getClassLoader.getResource("database/bag-index.sql").toURI)).map(_.mkString))
+      .map { case (statement, query) =>
+        statement.executeUpdate(query)
+      }
+      .tried shouldBe a[Success[_]]
+
+    connection = pool.getConnection
+
+    pool
   }
 
   before {
-    initConnection()
+    initConnectionPool()
   }
 
   after {
-    closeConnection()
+    connection.close()
+    closeConnectionPool()
   }
 }
