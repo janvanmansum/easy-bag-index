@@ -22,11 +22,11 @@ import org.apache.commons.io.FileUtils
 
 trait BagStoreFixture extends TestSupportFixture with BagStoreAccess {
 
-  override val bagStoreBaseDir: Path = {
+  override val baseDirs: Seq[Path] = {
     val bagStoreBaseDir = testDir.resolve("bag-store")
-    val origBagStore = Paths.get(getClass.getClassLoader.getResource("bag-store/").toURI)
+    val origBagStore = Paths.get("src/test/resources/bag-store")
     FileUtils.copyDirectory(origBagStore.toFile, bagStoreBaseDir.toFile)
-
-    bagStoreBaseDir
+    Seq(bagStoreBaseDir)
+    // TODO: Add an extra test bag-store
   }
 }

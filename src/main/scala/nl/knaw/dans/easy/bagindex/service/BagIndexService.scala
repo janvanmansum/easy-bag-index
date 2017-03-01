@@ -28,7 +28,7 @@ class BagIndexService extends BagIndexApp with DebugEnhancedLogging {
   import logger._
 
   info(s"database connection: $dbUrl")
-  info(s"bagstore filesystem: ${bagStoreBaseDir.toAbsolutePath}")
+  info(s"bagstores: ${baseDirs.map(_.toAbsolutePath).mkString("[", ", ", "]")}")
   validateSettings()
 
   private val port = properties.getInt("bag-index.daemon.http.port")

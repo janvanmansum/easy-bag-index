@@ -101,8 +101,8 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
     t match {
       case e: IllegalArgumentException => BadRequest(e.getMessage)
       case e: BagIdNotFoundException => NotFound(e.getMessage)
+      case e: NotABagDirException => NotFound(e.getMessage)
       case e: BagNotFoundException => NotFound(e.getMessage)
-      case e: BagNotFoundInBagStoreException => NotFound(e.getMessage)
       case e =>
         logger.error("Unexpected type of failure", e)
         InternalServerError(s"[${DateTime.now}] Unexpected type of failure. Please consult the logs")

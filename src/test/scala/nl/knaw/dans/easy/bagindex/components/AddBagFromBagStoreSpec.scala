@@ -100,9 +100,8 @@ class AddBagFromBagStoreSpec extends BagStoreFixture with BagIndexDatabaseFixtur
     val bagId = UUID.randomUUID()
 
     inside(addFromBagStore(bagId)) {
-      case Failure(BagNotFoundInBagStoreException(id, bagStore)) =>
+      case Failure(BagNotFoundException(id)) =>
         id shouldBe bagId
-        bagStore shouldBe bagStoreBaseDir
     }
   }
 }

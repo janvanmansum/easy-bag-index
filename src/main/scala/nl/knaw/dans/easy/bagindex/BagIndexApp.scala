@@ -21,6 +21,7 @@ import java.nio.file.{ Files, Path, Paths }
 import nl.knaw.dans.easy.bagindex.components._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.configuration.PropertiesConfiguration
+import collection.JavaConverters._
 
 trait BagIndexApp extends AddBagToIndex
   with GetBagFromIndex
@@ -39,7 +40,7 @@ trait BagIndexApp extends AddBagToIndex
   override val dbUrl: String = properties.getString("bag-index.database.url")
   override val dbUsername: Option[String] = Option(properties.getString("bag-index.database.username"))
   override val dbPassword: Option[String] = Option(properties.getString("bag-index.database.password"))
-  override val bagStoreBaseDir: Path = Paths.get(properties.getString("bag-index.bag-store.base-dir")).toAbsolutePath
+  override val baseDirs: Seq[Path] = properties.getList("bag-index.bag-store.base-dirs").asScala.map(dir => Paths.get(dir.asInstanceOf[String]))
   override val bagFacade = new Bagit4Facade()
 
   def validateSettings(): Unit = {
@@ -50,6 +51,6 @@ trait BagIndexApp extends AddBagToIndex
       }
     }
     assert(userPasswordSettings, "database username and password should be either both defined or not defined")
-    assert(Files.isReadable(bagStoreBaseDir), s"Non-existing or non-readable bag-store: $bagStoreBaseDir")
+    baseDirs.foreach(base => assert(Files.isReadable(base), s"Non-existing or non-readable bag-store: $base"))
   }
 }
