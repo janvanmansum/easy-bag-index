@@ -20,7 +20,7 @@ import java.nio.file.Path
 import java.util.UUID
 
 import gov.loc.repository.bagit.{ Bag, BagFactory }
-import nl.knaw.dans.easy.bagindex.{ BagNotFoundException, BaseId, InvalidIsVersionOfException, NoBagInfoFoundException, dateTimeFormatter }
+import nl.knaw.dans.easy.bagindex.{ NotABagDirException, BaseId, InvalidIsVersionOfException, NoBagInfoFoundException, dateTimeFormatter }
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters.mapAsScalaMapConverter
@@ -65,7 +65,7 @@ trait Bagit4FacadeComponent extends BagFacadeComponent {
 
     private def getBag(bagDir: Path): Try[Bag] = Try {
       bagFactory.createBag(bagDir.toFile, BagFactory.Version.V0_97, BagFactory.LoadOption.BY_MANIFESTS)
-    }.recoverWith { case cause => Failure(BagNotFoundException(bagDir, cause)) }
+    }.recoverWith { case cause => Failure(NotABagDirException(bagDir, cause)) }
 
     // TODO: canditate for easy-bagit-lib
     private def getIsVersionOfFromUri(bagDir: Path)(uri: URI): Try[UUID] = {

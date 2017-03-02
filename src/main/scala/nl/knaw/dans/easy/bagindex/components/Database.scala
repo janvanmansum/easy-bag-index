@@ -100,9 +100,9 @@ trait Database {
       .map(result =>
         if (result.next())
           BagInfo(
-            bagId = UUID.fromString(result.getString("bagId")),
-            baseId = UUID.fromString(result.getString("base")),
-            created = DateTime.parse(result.getString("created"), dateTimeFormatter))
+            bagId = UUID.fromString(result.getString("bagId").trim),
+            baseId = UUID.fromString(result.getString("base").trim),
+            created = DateTime.parse(result.getString("created").trim, dateTimeFormatter))
         else
           throw BagIdNotFoundException(bagId))
       .tried

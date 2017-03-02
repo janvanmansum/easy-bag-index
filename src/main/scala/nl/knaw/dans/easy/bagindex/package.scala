@@ -27,8 +27,8 @@ import scala.util.{ Failure, Success, Try }
 package object bagindex {
 
   case class BagIdNotFoundException(bagId: BagId) extends Exception(s"The specified bagId ($bagId) does not exist.")
-  case class BagNotFoundException(bagDir: Path, cause: Throwable) extends Exception(s"A bag could not be loaded at $bagDir", cause)
-  case class BagNotFoundInBagStoreException(bagId: BagId, baseDir: Path) extends Exception(s"The bag with id '$bagId' could not be found in bagstore '${baseDir.toAbsolutePath}'")
+  case class NotABagDirException(bagDir: Path, cause: Throwable) extends Exception(s"A bag could not be loaded at $bagDir", cause)
+  case class BagNotFoundException(bagId: BagId) extends Exception(s"The bag with id '$bagId' could not be found.")
   case class NoBagInfoFoundException(bagDir: Path) extends Exception(s"The bag at '$bagDir' does not have a file 'bag-info.txt'")
   case class InvalidIsVersionOfException(bagDir: Path, value: String) extends Exception(s"Bag at '$bagDir' has an unsupported value in the bag-info.txt for field Is-Version-Of: $value")
 
@@ -92,5 +92,15 @@ package object bagindex {
      * Transform this Optional to an equivalent Scala Option
      */
     def asScala: Option[T] = if (opt.isPresent) Some(opt.get()) else None
+  }
+
+
+  // TODO: WILL BE IN dans-scala-lib
+  implicit class FailFastStream[T](val stream: Stream[Try[T]]) {
+    def failFast: Try[Stream[T]] = {
+      stream.find(_.isFailure)
+        .map(_.flatMap(s => Failure(new IllegalArgumentException(s"Success should never occur here, but got Success($s)"))))
+        .getOrElse(Success(stream.map(_.get)))
+    }
   }
 }
