@@ -39,7 +39,7 @@
 			<directory>${project.basedir}/src/main/assembly/dist/bin</directory>
 			<outputDirectory>bin</outputDirectory>
 			<includes>
-				<include>easy-bag-store</include>
+				<include>easy-bag-index</include>
 			</includes>
 			<fileMode>0755</fileMode>
 		</fileSet>
