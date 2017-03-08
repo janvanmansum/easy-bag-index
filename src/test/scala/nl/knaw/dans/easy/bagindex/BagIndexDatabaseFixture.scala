@@ -19,7 +19,6 @@ import java.sql.Connection
 
 import nl.knaw.dans.easy.bagindex.components.{ Database, DatabaseAccess }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.apache.commons.dbcp2.BasicDataSource
 import org.scalatest.BeforeAndAfter
 
 import scala.io.Source
@@ -34,13 +33,13 @@ trait BagIndexDatabaseFixture extends TestSupportFixture
   with DebugEnhancedLogging {
 
   override val dbDriverClassName: String = "org.sqlite.JDBC"
-  override val dbUrl: String = "jdbc:sqlite::memory:"
+  override val dbUrl: String = s"jdbc:sqlite:${testDir.resolve("database.db").toString}"
   override val dbUsername = Option.empty[String]
   override val dbPassword = Option.empty[String]
 
   implicit var connection: Connection = _
 
-  override protected def createConnectionPool: BasicDataSource = {
+  override protected def createConnectionPool: ConnectionPool = {
     val pool = super.createConnectionPool
 
     managed(pool.getConnection)

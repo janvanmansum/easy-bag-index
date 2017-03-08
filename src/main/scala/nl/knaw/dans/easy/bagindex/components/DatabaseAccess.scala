@@ -15,10 +15,11 @@
  */
 package nl.knaw.dans.easy.bagindex.components
 
-import java.sql.{ Connection, SQLException }
+import java.sql.Connection
+import javax.sql.DataSource
 
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import nl.knaw.dans.easy.bagindex._
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.dbcp2.BasicDataSource
 import resource._
 
@@ -29,14 +30,16 @@ trait DatabaseAccess {
   this: DebugEnhancedLogging =>
   import logger._
 
-  private var pool: BasicDataSource = _
+  type ConnectionPool = DataSource with AutoCloseable
+
+  private var pool: ConnectionPool = _
 
   val dbDriverClassName: String
   val dbUrl: String
   val dbUsername: Option[String]
   val dbPassword: Option[String]
 
-  protected def createConnectionPool: BasicDataSource = {
+  protected def createConnectionPool: ConnectionPool = {
     val source = new BasicDataSource
     source.setDriverClassName(dbDriverClassName)
     source.setUrl(dbUrl)
@@ -58,14 +61,28 @@ trait DatabaseAccess {
     info("Database connection closed")
   }
 
-  // TODO test and document
-  def doTransaction[T](f: Connection => Try[T]): Try[T] = {
+  /**
+   * Performs a database transaction with the function argument. Given the `Connection` in
+   * `actionFunc`, the user can create and execute SQL statements and queries, which must result in
+   * a `Try[T]`. If the result of `actionFunc` is a `Success`, the transaction will be completed by
+   * committing the results to the database. If the result of `actionFunc` is a `Failure`,
+   * the changes made during this transaction are rolled back.
+   * The result (either `Success` or `Failure`) will then be returned.
+   *
+   * '''Note:''' the user is not supposed to close the connection, to commit or rollback any changes
+   * in `actionFunc` itself.
+   *
+   * @param actionFunc the actions to be performed on the database given the `Connection`
+   * @tparam T the return type of the performed actions
+   * @return `Success` if the actions performed on the database were successful; `Failure` otherwise
+   */
+  def doTransaction[T](actionFunc: Connection => Try[T]): Try[T] = {
     managed(pool.getConnection)
       .map(connection => {
         connection.setAutoCommit(false)
         val savepoint = connection.setSavepoint()
 
-        f(connection)
+        actionFunc(connection)
           .ifSuccess(_ => {
             connection.commit()
             connection.setAutoCommit(true)
