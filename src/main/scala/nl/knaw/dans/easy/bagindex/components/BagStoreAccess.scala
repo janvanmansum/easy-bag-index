@@ -50,12 +50,9 @@ trait BagStoreAccess {
   }
 
   private def findBag(container: Path): Try[Path] = Try {
-    resource.managed(Files.list(container)).acquireAndGet {
-      s =>
-        val containedFiles = s.iterator().asScala.toList
-        assert(containedFiles.size == 1, s"Corrupt BagStore, container with less or more than one file: $container")
-        container.resolve(containedFiles.head)
-    }
+    val containedFiles = resource.managed(Files.list(container)).acquireAndGet(_.iterator().asScala.toList)
+    assert(containedFiles.size == 1, s"Corrupt BagStore, container with less or more than one file: $container")
+    container.resolve(containedFiles.head)
   }
 
   /**
@@ -73,7 +70,7 @@ trait BagStoreAccess {
         Success(currentPath)
       else {
         val res = for {
-          subPath <- resource.managed(Files.list(currentPath)).acquireAndGet(_.findFirst().asScala)
+          subPath <- resource.managed(Files.list(currentPath)).acquireAndGet(_.findFirst.asScala)
           length = subPath.getFileName.toString.length
           (path, restPath2) = restPath.splitAt(length)
           newPath = currentPath.resolve(path)
@@ -106,7 +103,7 @@ trait BagStoreAccess {
         def probe(path: Path, length: Int, levels: Int): Int = {
           length match {
             case l if l > 0 =>
-              val p = resource.managed(Files.list(path)).acquireAndGet(_.findFirst().get)
+              val p = resource.managed(Files.list(path)).acquireAndGet(_.findFirst.get)
               probe(p, length - p.getFileName.toString.length, levels + 1)
             case 0 => levels
             case _ => throw new Exception("corrupt bagstore")
