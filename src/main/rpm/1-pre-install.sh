@@ -16,11 +16,13 @@
 #
 
 
-ARGS=$@
-APPHOME=home
-. apphome.sh
+NUMBER_OF_INSTALLATIONS=$1
+echo "Executing PRE-INSTALL. Number of current installations: $NUMBER_OF_INSTALLATIONS"
 
-mvn exec:java -Pservice \
-              -Dapp.home=$APPHOME \
-              -Dlogback.configurationFile=$APPHOME/cfg/logback-service.xml \
-              -Dexec.args="$ARGS"
+USER_NAME=easy-bag-index
+id -u $USER_NAME 2> /dev/null 1> /dev/null
+
+if [ "$?" == "1" ]; # User not found
+then
+    useradd $USER_NAME 2> /dev/null
+fi

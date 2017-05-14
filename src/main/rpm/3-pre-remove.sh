@@ -16,11 +16,5 @@
 #
 
 
-ARGS=$@
-APPHOME=home
-. apphome.sh
-
-mvn exec:java -Pservice \
-              -Dapp.home=$APPHOME \
-              -Dlogback.configurationFile=$APPHOME/cfg/logback-service.xml \
-              -Dexec.args="$ARGS"
+NUMBER_OF_INSTALLATIONS=$1
+echo "Executing PRE-REMOVE. Number of current installations: $NUMBER_OF_INSTALLATIONS"
