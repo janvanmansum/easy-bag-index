@@ -52,10 +52,10 @@ trait IndexBagStore {
       // extract data from bag-info.txt
       infos = bags.map {
         case (bagId, path) =>
-          bagFacade.getIndexRelevantBagInfo(path).get match {
+          (bagFacade.getIndexRelevantBagInfo(path).get, bagFacade.getDoi(toDatasetXml(path, bagId)).get) match {
             // TODO is there a better way to fail fast?
-            case (Some(baseDir), Some(created)) => BagInfo(bagId, baseDir, created)
-            case (None, Some(created)) => BagInfo(bagId, bagId, created)
+            case ((Some(baseDir), Some(created)), doi) => BagInfo(bagId, baseDir, created, doi)
+            case ((None, Some(created)), doi) => BagInfo(bagId, bagId, created, doi)
             case _ => throw new Exception(s"could not index bag $bagId")
           }
       }
@@ -63,7 +63,7 @@ trait IndexBagStore {
       _ <- Try {
         // TODO is there a better way to fail fast?
         // - Richard: "Yes, there is, because you're working on a Stream. I'll add it to the dans-scala-lib as soon as I have time for it."
-        infos.foreach(relation => addBagInfo(relation.bagId, relation.baseId, relation.created).get)
+        infos.foreach(relation => addBagInfo(relation.bagId, relation.baseId, relation.created, relation.doi).get)
       }
       // get all base bagIds
       bases <- getAllBaseBagIds

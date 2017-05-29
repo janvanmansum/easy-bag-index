@@ -127,6 +127,10 @@
             <groupId>org.json4s</groupId>
             <artifactId>json4s-native_2.11</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-xml_2.11</artifactId>
+        </dependency>
 
         <!-- databases -->
         <dependency>

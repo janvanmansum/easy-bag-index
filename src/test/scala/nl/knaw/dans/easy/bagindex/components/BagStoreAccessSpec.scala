@@ -22,7 +22,7 @@ import nl.knaw.dans.easy.bagindex.{ BagNotFoundException, BagStoreFixture }
 import scala.util.{ Failure, Success }
 
 class BagStoreAccessSpec extends BagStoreFixture {
-  val bagStoreBaseDir = baseDirs.head
+  private val bagStoreBaseDir = baseDirs.headOption.getOrElse(throw new NoSuchElementException("no bagstore base directory found"))
 
   "toLocation" should "resolve the path to the actual bag identified with a bagId" in {
     val bagId = UUID.fromString("00000000-0000-0000-0000-000000000001")
@@ -33,10 +33,7 @@ class BagStoreAccessSpec extends BagStoreFixture {
 
   it should "fail with a BagNotFoundInBagStoreException when the bag is not in the bagstore" in {
     val bagId = UUID.randomUUID()
-    inside(toLocation(bagId)) {
-      case Failure(BagNotFoundException(id)) =>
-        id shouldBe bagId
-    }
+    toLocation(bagId) should matchPattern { case Failure(BagNotFoundException(`bagId`)) => }
   }
 
   "toContainer" should "resolve the path to the bag's container identified with a bagId" in {
@@ -48,10 +45,13 @@ class BagStoreAccessSpec extends BagStoreFixture {
 
   it should "return a None if the bag is not in the bagstore" in {
     val bagId = UUID.randomUUID()
-    inside(toContainer(bagId, bagStoreBaseDir)) {
-      case Failure(BagNotFoundException(id)) =>
-        id shouldBe bagId
-    }
+    toContainer(bagId, bagStoreBaseDir) should matchPattern { case Failure(BagNotFoundException(`bagId`)) => }
+  }
+
+  "toDatasetXml" should "resolve the path to the metadata/dataset.xml file of the bag identifier with a bagId" in {
+    val bagId = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    toDatasetXml(bagStoreBaseDir.resolve("00/000000000000000000000000000001/bag-revision-1/"), bagId) shouldBe
+      bagStoreBaseDir.resolve("00/000000000000000000000000000001/bag-revision-1/metadata/dataset.xml")
   }
 
   "traverse" should "list all bags in the bagstore" in {

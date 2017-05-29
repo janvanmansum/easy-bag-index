@@ -102,7 +102,8 @@ trait Database {
           BagInfo(
             bagId = UUID.fromString(result.getString("bagId").trim),
             baseId = UUID.fromString(result.getString("base").trim),
-            created = DateTime.parse(result.getString("created").trim, dateTimeFormatter))
+            created = DateTime.parse(result.getString("created").trim, dateTimeFormatter),
+            doi = result.getString("doi").trim)
         else
           throw BagIdNotFoundException(bagId))
       .tried
@@ -127,7 +128,8 @@ trait Database {
         .map(_ => BagInfo(
           bagId = UUID.fromString(result.getString("bagId")),
           baseId = UUID.fromString(result.getString("base")),
-          created = DateTime.parse(result.getString("created"), dateTimeFormatter)))
+          created = DateTime.parse(result.getString("created"), dateTimeFormatter),
+          doi = result.getString("doi")))
         .toList)
       .tried
   }
@@ -142,14 +144,15 @@ trait Database {
    * @param connection the connection to the database on which this action needs to be applied
    * @return `Success` if the bag relation was added successfully; `Failure` otherwise
    */
-  def addBagInfo(bagId: BagId, baseId: BaseId, created: DateTime)(implicit connection: Connection): Try[Unit] = {
+  def addBagInfo(bagId: BagId, baseId: BaseId, created: DateTime, doi: Doi)(implicit connection: Connection): Try[Unit] = {
     trace(bagId, baseId, created)
 
-    managed(connection.prepareStatement("INSERT INTO bag_info VALUES (?, ?, ?);"))
+    managed(connection.prepareStatement("INSERT INTO bag_info VALUES (?, ?, ?, ?);"))
       .map(prepStatement => {
         prepStatement.setString(1, bagId.toString)
         prepStatement.setString(2, baseId.toString)
         prepStatement.setString(3, created.toString(dateTimeFormatter))
+        prepStatement.setString(4, doi)
         prepStatement.executeUpdate()
       })
       .tried

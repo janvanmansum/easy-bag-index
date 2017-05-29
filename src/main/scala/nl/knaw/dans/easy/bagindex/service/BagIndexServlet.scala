@@ -29,6 +29,7 @@ import scala.xml.PrettyPrinter
 
 case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugEnhancedLogging {
   import app._
+
   get("/") {
     Ok("EASY Bag Index running.")
   }
@@ -63,6 +64,7 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
                   <bag-id>{relation.bagId.toString}</bag-id>
                   <base-id>{relation.baseId.toString}</base-id>
                   <created>{relation.created.toString(dateTimeFormatter)}</created>
+                  <doi>{relation.doi}</doi>
                 </bag-info>
                 // @formatter:on
               }
@@ -73,7 +75,8 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
                 "bag-info" -> {
                   ("bag-id" -> relation.bagId.toString) ~
                   ("base-id" -> relation.baseId.toString) ~
-                  ("created" -> relation.created.toString(dateTimeFormatter))
+                  ("created" -> relation.created.toString(dateTimeFormatter)) ~
+                  ("doi" -> relation.doi)
                 }
                 // @formatter:on
               })
@@ -103,6 +106,7 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
       case e: BagIdNotFoundException => NotFound(e.getMessage)
       case e: NotABagDirException => NotFound(e.getMessage)
       case e: BagNotFoundException => NotFound(e.getMessage)
+      case e: NoDoiFoundException => BadRequest(e.getMessage)
       case e =>
         logger.error("Unexpected type of failure", e)
         InternalServerError(s"[${DateTime.now}] Unexpected type of failure. Please consult the logs")

@@ -25,7 +25,6 @@ import scala.annotation.tailrec
 import scala.util.{ Failure, Success, Try }
 import scala.collection.JavaConverters._
 
-
 trait BagStoreAccess {
   val baseDirs: Seq[Path]
 
@@ -44,9 +43,11 @@ trait BagStoreAccess {
    * @see [[toContainer]]
    */
   def toLocation(bagId: BagId): Try[Path] = {
-    baseDirs.toStream.map {
-      base => toContainer(bagId, base)
-    }.find(_.isSuccess).getOrElse(Failure(BagNotFoundException(bagId))).flatMap(findBag)
+    baseDirs.toStream
+      .map(toContainer(bagId, _))
+      .find(_.isSuccess)
+      .getOrElse(Failure(BagNotFoundException(bagId)))
+      .flatMap(findBag)
   }
 
   private def findBag(container: Path): Try[Path] = Try {
@@ -86,6 +87,17 @@ trait BagStoreAccess {
     }
 
     tailRec(baseDir, bagId.toString.filterNot(_ == '-'))
+  }
+
+  /**
+   * Return the path to the bag's `metadata/dataset.xml` file.
+   *
+   * @param baseDir the path to the bag
+   * @param bagId the bag's bagId
+   * @return the path to the bag's `metadata/dataset.xml` file
+   */
+  def toDatasetXml(baseDir: Path, bagId: BagId): Path = {
+    baseDir.resolve("metadata/dataset.xml")
   }
 
   /**

@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagindex.components
 
 import java.sql.Connection
 
-import nl.knaw.dans.easy.bagindex.{ BagId, BaseId }
+import nl.knaw.dans.easy.bagindex.{ BagId, BaseId, Doi }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 
@@ -35,9 +35,9 @@ trait AddBagToIndex {
    * @param connection the connection to the database on which this action needs to be applied
    * @return `Success` if the bagId was added to the index; `Failure` otherwise
    */
-  def addBase(bagId: BagId, created: Option[DateTime] = None)(implicit connection: Connection): Try[BaseId] = {
+  def addBase(bagId: BagId, created: Option[DateTime] = None, doi: Doi)(implicit connection: Connection): Try[BaseId] = {
     trace(bagId, created)
-    addBagInfo(bagId, bagId, created.getOrElse(DateTime.now())).map(_ => bagId)
+    addBagInfo(bagId, bagId, created.getOrElse(DateTime.now()), doi).map(_ => bagId)
   }
 
   /**
@@ -52,11 +52,11 @@ trait AddBagToIndex {
    * @param connection the connection to the database on which this action needs to be applied
    * @return the baseId of the super-base if the bagId was added to the index; `Failure` otherwise
    */
-  def add(bagId: BagId, baseId: BaseId, created: Option[DateTime] = None)(implicit connection: Connection): Try[BaseId] = {
+  def add(bagId: BagId, baseId: BaseId, created: Option[DateTime] = None, doi: Doi)(implicit connection: Connection): Try[BaseId] = {
     trace(bagId, baseId, created)
     for {
       superBase <- getBaseBagId(baseId)
-      _ <- addBagInfo(bagId, superBase, created.getOrElse(DateTime.now()))
+      _ <- addBagInfo(bagId, superBase, created.getOrElse(DateTime.now()), doi)
     } yield superBase
   }
 }

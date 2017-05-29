@@ -31,15 +31,17 @@ package object bagindex {
   case class BagNotFoundException(bagId: BagId) extends Exception(s"The bag with id '$bagId' could not be found.")
   case class NoBagInfoFoundException(bagDir: Path) extends Exception(s"The bag at '$bagDir' does not have a file 'bag-info.txt'")
   case class InvalidIsVersionOfException(bagDir: Path, value: String) extends Exception(s"Bag at '$bagDir' has an unsupported value in the bag-info.txt for field Is-Version-Of: $value")
+  case class NoDoiFoundException(datasetXML: Path) extends Exception(s"The metadata/dataset.xml at '$datasetXML' does not contain a DOI identifier")
 
   val CONTEXT_ATTRIBUTE_KEY_BAGINDEX_APP = "nl.knaw.dans.easy.bagindex.BagIndexApp"
   val dateTimeFormatter: DateTimeFormatter = ISODateTimeFormat.dateTime()
 
   type BagId = UUID
   type BaseId = UUID
+  type Doi = String
 
   // TODO: rename to BagIndexRecord (or something, but BagInfo is easily confused with bag-info.txt)
-  case class BagInfo(bagId: BagId, baseId: BaseId, created: DateTime)
+  case class BagInfo(bagId: BagId, baseId: BaseId, created: DateTime, doi: Doi)
 
   object Version {
     def apply(): String = {
