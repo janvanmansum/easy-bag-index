@@ -38,9 +38,9 @@ class BagStoreAccessSpec extends BagStoreFixture {
 
   "toContainer" should "resolve the path to the bag's container identified with a bagId" in {
     val bagId = UUID.fromString("00000000-0000-0000-0000-000000000001")
-    inside(toContainer(bagId, bagStoreBaseDir)) {
-      case Success(path) => path shouldBe bagStoreBaseDir.resolve("00/000000000000000000000000000001")
-    }
+    val container = bagStoreBaseDir.resolve("00/000000000000000000000000000001")
+
+    toContainer(bagId, bagStoreBaseDir) should matchPattern { case Success(`container`) => }
   }
 
   it should "return a None if the bag is not in the bagstore" in {

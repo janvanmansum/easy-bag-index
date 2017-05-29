@@ -43,9 +43,7 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
     val bagId = UUID.randomUUID()
     val doi = "10.5072/dans-x6f-kf66"
 
-    inside(add(bagId, baseId, doi = doi)) {
-      case Success(superBase) => superBase shouldBe baseId
-    }
+    add(bagId, baseId, doi = doi) should matchPattern { case Success(`baseId`) => }
 
     inside(getAllBagInfos) {
       case Success(relations) => relations.map { case BagInfo(id, base, _, _) => (id, base) } should contain ((bagId, baseId))
@@ -59,9 +57,7 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
     val bagId = UUID.randomUUID()
     val doi = "10.5072/dans-x6f-kf66"
 
-    inside(add(bagId, baseId, doi = doi)) {
-      case Success(superBase) => superBase shouldBe superBaseId
-    }
+    add(bagId, baseId, doi = doi) should matchPattern { case Success(`superBaseId`) => }
 
     inside(getAllBagInfos) {
       case Success(relations) => relations.map { case BagInfo(id, base, _, _) => (id, base) } should contain ((bagId, superBaseId))
@@ -92,8 +88,6 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
       case Success(relations) => relations.map(_.bagId) should not contain baseId
     }
 
-    inside(add(bagId, baseId, doi = doi)) {
-      case Failure(BagIdNotFoundException(id)) => id shouldBe baseId
-    }
+    add(bagId, baseId, doi = doi) should matchPattern { case Failure(BagIdNotFoundException(`baseId`)) => }
   }
 }

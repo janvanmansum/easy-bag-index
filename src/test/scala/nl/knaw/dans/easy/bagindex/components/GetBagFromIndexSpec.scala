@@ -78,8 +78,6 @@ class GetBagFromIndexSpec extends BagIndexDatabaseFixture with GetBagFromIndex {
   it should "fail if the given bagId is not present in the database" in {
     // Note: the database is empty at this point!
     val someOtherBagId = UUID.randomUUID()
-    inside(getBagSequence(someOtherBagId)) {
-      case Failure(BagIdNotFoundException(id)) => id shouldBe someOtherBagId
-    }
+    getBagSequence(someOtherBagId) should matchPattern { case Failure(BagIdNotFoundException(`someOtherBagId`)) => }
   }
 }

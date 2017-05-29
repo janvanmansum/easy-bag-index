@@ -39,18 +39,14 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
       .collectResults shouldBe a[Success[_]]
 
     for (bagId <- bagIds) {
-      inside(getBaseBagId(bagId)) {
-        case Success(base) => base shouldBe baseId
-      }
+      getBaseBagId(bagId) should matchPattern { case Success(`baseId`) => }
     }
   }
 
   it should "return a Failure with a BagIdNotFoundException inside if the bagId is not present in the database" in {
     // Note: the database is empty at this point!
     val someBagId = UUID.randomUUID()
-    inside(getBaseBagId(someBagId)) {
-      case Failure(BagIdNotFoundException(id)) => id shouldBe someBagId
-    }
+    getBaseBagId(someBagId) should matchPattern { case Failure(BagIdNotFoundException(`someBagId`)) => }
   }
 
   "getAllBagsWithBase" should "return a sequence with only the baseId when there are no child bags declared" in {
@@ -111,23 +107,14 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
       .map { case (bagId, time, doi) => addBagInfo(bagId, baseId, time, doi) }
       .collectResults shouldBe a[Success[_]]
 
-    for ((bagId, created, expectedDoi) <- (bagIds, times, dois).zipped.toList) {
-      inside(getBagInfo(bagId)) {
-        case Success(BagInfo(bag, base, time, doi)) =>
-          bag shouldBe bagId
-          base shouldBe baseId
-          time shouldBe created
-          doi shouldBe expectedDoi
-      }
-    }
+    for ((bagId, created, doi) <- (bagIds, times, dois).zipped.toList)
+      getBagInfo(bagId) should matchPattern { case Success(BagInfo(`bagId`, `baseId`, `created`, `doi`)) => }
   }
 
   it should "return a BagIdNotFoundException when the given bagId does not exist in the database" in {
     // Note: the database is empty at this point!
     val someBagId = UUID.randomUUID()
-    inside(getBagInfo(someBagId)) {
-      case Failure(BagIdNotFoundException(id)) => id shouldBe someBagId
-    }
+    getBagInfo(someBagId) should matchPattern { case Failure(BagIdNotFoundException(`someBagId`)) => }
   }
 
   "addBagInfo" should "insert a new bag relation into the database" in {
