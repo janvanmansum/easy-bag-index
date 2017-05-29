@@ -19,11 +19,13 @@
 NUMBER_OF_INSTALLATIONS=$1
 echo "Executing POST-INSTALL. Number of current installations: $NUMBER_OF_INSTALLATIONS"
 
-INSTALL_DIR=/opt/dans.knaw.nl/easy-bag-index
-LOGDIR=/var/opt/dans.knaw.nl/log/easy-bag-index
+MODULE_NAME=easy-bag-index
+MODULE_USER=$MODULE_NAME
+DATABASE_NAME=easy_bag_index
+INSTALL_DIR=/opt/dans.knaw.nl/$MODULE_NAME
+LOGDIR=/var/opt/dans.knaw.nl/log/$MODULE_NAME
 INITD_SCRIPTS=/etc/init.d
 SYSTEMD_SCRIPTS=/usr/lib/systemd/system
-BAG_INDEX_USER=easy-bag-index
 
 if [ $NUMBER_OF_INSTALLATIONS -eq 1 ]; then # First install
     echo "First time install, replacing default config with RPM-aligned one"
@@ -31,34 +33,34 @@ if [ $NUMBER_OF_INSTALLATIONS -eq 1 ]; then # First install
     # Temporary arrangement to make sure the default config settings align with the FHS-abiding
     # RPM installation
     #
-    rm /etc/opt/dans.knaw.nl/easy-bag-store/logback-service.xml
-    mv /etc/opt/dans.knaw.nl/easy-bag-store/rpm-logback-service.xml /etc/opt/dans.knaw.nl/easy-bag-store/logback-service.xml
+    rm /etc/opt/dans.knaw.nl/$MODULE_NAME/logback-service.xml
+    mv /etc/opt/dans.knaw.nl/$MODULE_NAME/rpm-logback-service.xml /etc/opt/dans.knaw.nl/$MODULE_NAME/logback-service.xml
 
 
-    sudo -u postgres psql -c "\q" easy_bag_index 2> /dev/null
+    sudo -u postgres psql -c "\q" $DATABASE_NAME 2> /dev/null
     if [ $? -ne 0 ]; then
         echo "Creating database..."
-        sudo -u postgres psql -c "CREATE ROLE easy_bag_index WITH LOGIN PASSWORD 'changeme'"
-        sudo -u postgres psql -c "CREATE DATABASE easy_bag_index WITH OWNER = easy_bag_index ENCODING = 'UTF8' CONNECTION LIMIT = -1"
-        sudo -u postgres psql -d easy_bag_index -f $INSTALL_DIR/bin/db-tables.sql
+        sudo -u postgres psql -c "CREATE ROLE $DATABASE_NAME WITH LOGIN PASSWORD 'changeme'"
+        sudo -u postgres psql -c "CREATE DATABASE $DATABASE_NAME WITH OWNER = $DATABASE_NAME ENCODING = 'UTF8' CONNECTION LIMIT = -1"
+        sudo -u postgres psql -d $DATABASE_NAME -f $INSTALL_DIR/bin/db-tables.sql
         echo "Database created. DO NOT FORGET TO CHANGE YOUR ADMIN PASSWORD FROM THE DEFAULT TO SOMETHING SAFE!"
     else
-        echo "Database easy_bag_index already exists. Please, remove database before reinstalling."
+        echo "Database $DATABASE_NAME already exists. Please, remove database before reinstalling."
         exit 1
     fi
 fi
 
 if [ ! -d $LOGDIR ]; then
     mkdir -p $LOGDIR
-    chown $BAG_INDEX_USER $LOGDIR
+    chown $MODULE_USER $LOGDIR
 fi
 
 if [ -d $INITD_SCRIPTS ]; then
-    cp $INSTALL_DIR/bin/easy-bag-index-initd.sh $INITD_SCRIPTS/easy-bag-index
+    cp $INSTALL_DIR/bin/$MODULE_NAME-initd.sh $INITD_SCRIPTS/$MODULE_NAME
 fi
 
 if [ -d $SYSTEMD_SCRIPTS ]; then
-    cp $INSTALL_DIR/bin/easy-bag-index.service $SYSTEMD_SCRIPTS/
+    cp $INSTALL_DIR/bin/$MODULE_NAME.service $SYSTEMD_SCRIPTS/
 fi
 
 
