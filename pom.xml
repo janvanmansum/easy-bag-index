@@ -44,11 +44,7 @@
     </scm>
 
     <dependencies>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.1.7</version>
-        </dependency>
+        <!-- testing -->
         <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_2.11</artifactId>
@@ -58,63 +54,84 @@
             <artifactId>scalamock-scalatest-support_2.11</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.rogach</groupId>
-            <artifactId>scallop_2.11</artifactId>
+            <groupId>org.scalatra</groupId>
+            <artifactId>scalatra-scalatest_2.11</artifactId>
+            <version>2.5.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Scala utils -->
+        <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-xml_2.11</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-configuration</groupId>
-            <artifactId>commons-configuration</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>1.7.6</version>
-        </dependency>
-        <dependency>
-            <groupId>gov.loc</groupId>
-            <artifactId>bagit</artifactId>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-native_2.11</artifactId>
         </dependency>
         <dependency>
             <groupId>com.jsuereth</groupId>
             <artifactId>scala-arm_2.11</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.rogach</groupId>
+            <artifactId>scallop_2.11</artifactId>
+        </dependency>
+        <dependency>
             <groupId>nl.knaw.dans.lib</groupId>
             <artifactId>dans-scala-lib</artifactId>
         </dependency>
+
+        <!-- Apache Commons -->
         <dependency>
-            <groupId>org.scalatra</groupId>
-            <artifactId>scalatra_2.11</artifactId>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.scalatra</groupId>
-            <artifactId>scalatra-scalate_2.11</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-daemon</groupId>
             <artifactId>commons-daemon</artifactId>
         </dependency>
+
+        <!-- service -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-ajp</artifactId>
+            <artifactId>jetty-servlet</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
+            <artifactId>jetty-ajp</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.scalatra</groupId>
+            <artifactId>scalatra_2.11</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
+        <!-- logging -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>1.7.6</version>
+        </dependency>
+
+        <!-- joda -->
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
@@ -123,13 +140,11 @@
             <groupId>org.joda</groupId>
             <artifactId>joda-convert</artifactId>
         </dependency>
+
+        <!-- bagit -->
         <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-native_2.11</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang.modules</groupId>
-            <artifactId>scala-xml_2.11</artifactId>
+            <groupId>gov.loc</groupId>
+            <artifactId>bagit</artifactId>
         </dependency>
 
         <!-- databases -->
@@ -138,7 +153,6 @@
             <artifactId>commons-dbcp2</artifactId>
             <version>2.1.1</version>
         </dependency>
-
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -147,6 +161,7 @@
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.16.1</version> <!-- TODO add to parent project-->
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
