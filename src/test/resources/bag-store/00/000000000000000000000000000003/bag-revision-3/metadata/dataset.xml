@@ -16,6 +16,6 @@ xsi:schemaLocation="http://easy.dans.knaw.nl/schemas/md/ddm/ https://easy.dans.k
   </ddm:profile>
   <ddm:dcmiMetadata>
     <dcterms:type xsi:type="dcterms:DCMIType">Text</dcterms:type>
-    <dcterms:identifier xsi:type="id-type:DOI">10.17026/dans-2xg-umq0</dcterms:identifier>
+    <dcterms:identifier xsi:type="id-type:DOI">10.5072/dans-2xg-umq0</dcterms:identifier>
   </ddm:dcmiMetadata>
 </ddm:DDM>

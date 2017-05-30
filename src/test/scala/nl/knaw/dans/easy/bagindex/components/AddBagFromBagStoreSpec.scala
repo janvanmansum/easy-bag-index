@@ -45,7 +45,7 @@ class AddBagFromBagStoreSpec extends BagStoreFixture with BagIndexDatabaseFixtur
 
   def addBaseTest(): Unit = {
     val bagId = UUID.fromString("00000000-0000-0000-0000-000000000001")
-    val doi = "10.17026/dans-2xg-umq8"
+    val doi = "10.5072/dans-2xg-umq8"
 
     assertBagInfoNotInDatabase(bagId)
 
@@ -58,7 +58,7 @@ class AddBagFromBagStoreSpec extends BagStoreFixture with BagIndexDatabaseFixtur
     addBaseTest()
     val baseId = UUID.fromString("00000000-0000-0000-0000-000000000001")
     val bagId = UUID.fromString("00000000-0000-0000-0000-000000000002")
-    val doi = "10.17026/dans-2xg-umq9"
+    val doi = "10.5072/dans-2xg-umq9"
 
     assertBagInfoNotInDatabase(bagId)
 
@@ -71,7 +71,7 @@ class AddBagFromBagStoreSpec extends BagStoreFixture with BagIndexDatabaseFixtur
     addDirectChildTest()
     val superBaseId = UUID.fromString("00000000-0000-0000-0000-000000000001")
     val bagId = UUID.fromString("00000000-0000-0000-0000-000000000003")
-    val doi = "10.17026/dans-2xg-umq0"
+    val doi = "10.5072/dans-2xg-umq0"
 
     assertBagInfoNotInDatabase(bagId)
 
