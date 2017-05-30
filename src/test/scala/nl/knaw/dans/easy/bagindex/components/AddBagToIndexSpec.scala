@@ -25,9 +25,8 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
 
   def addBaseTest(): UUID = {
     val bagId = UUID.randomUUID()
-    val doi = "10.5072/dans-x6f-kf66"
 
-    inside(addBase(bagId, doi = doi)) {
+    inside(addBase(bagId, doi = testDoi)) {
       case Success(superBase) => superBase shouldBe bagId
     }
 
@@ -41,7 +40,7 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
   def addChildBagIdTest(): (UUID, UUID) = {
     val baseId = addBaseTest()
     val bagId = UUID.randomUUID()
-    val doi = "10.5072/dans-x6f-kf66"
+    val doi = testDoi.replaceAll("6", "7")
 
     add(bagId, baseId, doi = doi) should matchPattern { case Success(`baseId`) => }
 
@@ -55,7 +54,7 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
   def addChildBagIdWithSuperBaseTest(): (UUID, UUID, UUID) = {
     val (baseId, superBaseId) = addChildBagIdTest()
     val bagId = UUID.randomUUID()
-    val doi = "10.5072/dans-x6f-kf66"
+    val doi = testDoi.replaceAll("6", "8")
 
     add(bagId, baseId, doi = doi) should matchPattern { case Success(`superBaseId`) => }
 
@@ -81,13 +80,12 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
   it should "fail with a BagIdNotFoundException when the specified baseId does not exist in the database" in {
     val bagId = UUID.randomUUID()
     val baseId = UUID.randomUUID()
-    val doi = "10.5072/dans-x6f-kf66"
 
     // assert that the base is not yet present in the database
     inside(getAllBagInfos) {
       case Success(relations) => relations.map(_.bagId) should not contain baseId
     }
 
-    add(bagId, baseId, doi = doi) should matchPattern { case Failure(BagIdNotFoundException(`baseId`)) => }
+    add(bagId, baseId, doi = testDoi) should matchPattern { case Failure(BagIdNotFoundException(`baseId`)) => }
   }
 }

@@ -78,7 +78,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
       DateTime.parse("2017-03-09"),
       DateTime.parse("2018")
     )
-    val dois2 = List("10.5072/dans-a1b-cd2e", "10.5072/dans-f3g-hi45", "10.5072/dans-j6k-lm78", "10.5072/dans-n9o-pq01", "10.5072/dans-r2s-tu34")
+    val dois2 = List("10.5072/dans-a9b-cd8e", "10.5072/dans-f7g-hi65", "10.5072/dans-j4k-lm32", "10.5072/dans-n1o-pq98", "10.5072/dans-r7s-tu65")
 
     List(
       ((bagIds1, times1, dois1).zipped.toList, baseId1),

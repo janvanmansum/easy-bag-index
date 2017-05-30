@@ -26,7 +26,8 @@ class BagFacadeComponentSpec extends BagStoreFixture with Bagit4Fixture {
   private val bagStoreBaseDir = baseDirs.headOption.getOrElse(throw new NoSuchElementException("no bagstore base directory found"))
 
   "getDoi" should "find the DOI identifier in a metadata/dataset.xml file" in {
-    bagFacade.getDoi(bagStoreBaseDir.resolve("00/000000000000000000000000000001/bag-revision-1/metadata/dataset.xml")) should matchPattern { case Success("10.5072/dans-2xg-umq8") => }
+    val doi = doiMap("00000000-0000-0000-0000-000000000001")
+    bagFacade.getDoi(bagStoreBaseDir.resolve("00/000000000000000000000000000001/bag-revision-1/metadata/dataset.xml")) should matchPattern { case Success(`doi`) => }
   }
 
   it should "fail if the dataset.xml file did not contain a DOI identifier" in {

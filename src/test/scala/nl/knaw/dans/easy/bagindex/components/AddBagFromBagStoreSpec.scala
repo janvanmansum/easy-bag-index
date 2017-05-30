@@ -45,39 +45,36 @@ class AddBagFromBagStoreSpec extends BagStoreFixture with BagIndexDatabaseFixtur
 
   def addBaseTest(): Unit = {
     val bagId = UUID.fromString("00000000-0000-0000-0000-000000000001")
-    val doi = "10.5072/dans-2xg-umq8"
 
     assertBagInfoNotInDatabase(bagId)
 
     assertAdditionReturnedExpectedBaseId(bagId, bagId)
 
-    assertBagInfoInDatabase(BagInfo(bagId, bagId, DateTime.parse("2017-01-16T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doi))
+    assertBagInfoInDatabase(BagInfo(bagId, bagId, DateTime.parse("2017-01-16T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(bagId)))
   }
 
   def addDirectChildTest(): Unit = {
     addBaseTest()
     val baseId = UUID.fromString("00000000-0000-0000-0000-000000000001")
     val bagId = UUID.fromString("00000000-0000-0000-0000-000000000002")
-    val doi = "10.5072/dans-2xg-umq9"
 
     assertBagInfoNotInDatabase(bagId)
 
     assertAdditionReturnedExpectedBaseId(bagId, baseId)
 
-    assertBagInfoInDatabase(BagInfo(bagId, baseId, DateTime.parse("2017-01-17T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doi))
+    assertBagInfoInDatabase(BagInfo(bagId, baseId, DateTime.parse("2017-01-17T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(bagId)))
   }
 
   def addIndirectChildtest(): Unit = {
     addDirectChildTest()
     val superBaseId = UUID.fromString("00000000-0000-0000-0000-000000000001")
     val bagId = UUID.fromString("00000000-0000-0000-0000-000000000003")
-    val doi = "10.5072/dans-2xg-umq0"
 
     assertBagInfoNotInDatabase(bagId)
 
     assertAdditionReturnedExpectedBaseId(bagId, superBaseId)
 
-    assertBagInfoInDatabase(BagInfo(bagId, superBaseId, DateTime.parse("2017-01-18T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doi))
+    assertBagInfoInDatabase(BagInfo(bagId, superBaseId, DateTime.parse("2017-01-18T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(bagId)))
   }
 
   // add base bag

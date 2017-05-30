@@ -41,7 +41,6 @@ class DatabaseAccessSpec extends BagIndexDatabaseFixture with Database {
 
   it should "rollback changes made to the database whenever an error occurs in the arg function" in {
     val bagId = UUID.randomUUID()
-    val doi = "10.5072/dans-x6f-kf66"
 
     val originalContent = getAllBagInfos
     inside(originalContent) {
@@ -49,7 +48,7 @@ class DatabaseAccessSpec extends BagIndexDatabaseFixture with Database {
     }
 
     inside(doTransaction(implicit c => {
-      val add = addBagInfo(bagId, bagId, DateTime.now, doi)(c)
+      val add = addBagInfo(bagId, bagId, DateTime.now, testDoi)(c)
       add shouldBe a[Success[_]]
 
       // check that the bag was added properly
@@ -74,7 +73,6 @@ class DatabaseAccessSpec extends BagIndexDatabaseFixture with Database {
 
   it should "rollback changes made to the database whenever an error occurs in the post arg func phase" in {
     val bagId = UUID.randomUUID()
-    val doi = "10.5072/dans-x6f-kf66"
 
     val originalContent = getAllBagInfos
     inside(originalContent) {
@@ -82,7 +80,7 @@ class DatabaseAccessSpec extends BagIndexDatabaseFixture with Database {
     }
 
     doTransaction(implicit c => {
-      val add = addBagInfo(bagId, bagId, DateTime.now, doi)(c)
+      val add = addBagInfo(bagId, bagId, DateTime.now, testDoi)(c)
       add shouldBe a[Success[_]]
 
       // check that the bag was added properly

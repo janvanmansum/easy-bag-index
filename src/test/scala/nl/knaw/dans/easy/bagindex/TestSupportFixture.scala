@@ -28,4 +28,7 @@ trait TestSupportFixture extends FlatSpec with Matchers with Inside {
     Files.createDirectories(path)
     path
   }
+
+  lazy val testDoi: Doi = "10.5072/dans-x6f-kf66"
+  lazy val testDois = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
 }

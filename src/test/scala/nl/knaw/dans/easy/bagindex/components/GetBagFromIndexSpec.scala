@@ -28,9 +28,8 @@ class GetBagFromIndexSpec extends BagIndexDatabaseFixture with GetBagFromIndex {
   "getBagSequence" should "return a sequence with only the baseId when there are no child bags declared" in {
     val bagId = UUID.randomUUID()
     val time = DateTime.now()
-    val doi = "10.5072/dans-x6f-kf66"
 
-    addBagInfo(bagId, bagId, time, doi) shouldBe a[Success[_]]
+    addBagInfo(bagId, bagId, time, testDoi) shouldBe a[Success[_]]
 
     inside(getBagSequence(bagId)) {
       case Success(ids) => ids should (have size 1 and contain only bagId)
@@ -44,9 +43,8 @@ class GetBagFromIndexSpec extends BagIndexDatabaseFixture with GetBagFromIndex {
       DateTime.parse("2004-01-01"),
       DateTime.now()
     )
-    val dois = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
 
-    (bagIds, times, dois).zipped.toList
+    (bagIds, times, testDois).zipped.toList
       .map { case (bagId, time, doi) => addBagInfo(bagId, baseId, time, doi) }
       .collectResults shouldBe a[Success[_]]
 
@@ -62,9 +60,8 @@ class GetBagFromIndexSpec extends BagIndexDatabaseFixture with GetBagFromIndex {
       DateTime.parse("2004-01-01"),
       DateTime.now()
     )
-    val dois = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
 
-    (bagIds, times, dois).zipped.toList
+    (bagIds, times, testDois).zipped.toList
       .map { case (bagId, time, doi) => addBagInfo(bagId, baseId, time, doi) }
       .collectResults shouldBe a[Success[_]]
 
