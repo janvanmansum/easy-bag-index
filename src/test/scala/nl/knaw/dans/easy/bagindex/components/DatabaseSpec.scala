@@ -117,6 +117,41 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     getBagInfo(someBagId) should matchPattern { case Failure(BagIdNotFoundException(`someBagId`)) => }
   }
 
+  "getBagsWithDoi" should "return all bags with a certain DOI" in {
+    val bagIds@bagId1 :: bagId2 :: Nil = List.fill(2)(UUID.randomUUID())
+    val times@time1 :: time2 :: Nil = List(
+      DateTime.parse("1992-07-30T16:00:00"),
+      DateTime.now()
+    )
+    val dois@doi1 :: _ = List.fill(2)("10.5072/dans-x6f-kf6x")
+
+    (bagIds, times, dois).zipped.toList
+      .map { case (bagId, time, doi) => addBagInfo(bagId, bagId, time, doi) }
+      .collectResults shouldBe a[Success[_]]
+
+    inside(getBagsWithDoi(doi1)) {
+      case Success(bags) => bags should (have size 2 and contain only (BagInfo(bagId1, bagId1, time1, doi1), BagInfo(bagId2, bagId2, time2, doi1)))
+    }
+  }
+
+  it should "return the bag with a certain DOI if there is only one" in {
+    val bagId = UUID.randomUUID()
+    val time = DateTime.parse("1992-07-30T16:00:00")
+    val doi = "10.5072/dans-x6f-kf6x"
+
+    addBagInfo(bagId, bagId, time, doi) shouldBe a[Success[_]]
+
+    inside(getBagsWithDoi(doi)) {
+      case Success(bags) => bags should (have size 1 and contain only BagInfo(bagId, bagId, time, doi))
+    }
+  }
+
+  it should "return an empty sequence when the DOI isn't found" in {
+    inside(getBagsWithDoi("10.5072/dans-x6f-kf6x")) {
+      case Success(bags) => bags shouldBe empty
+    }
+  }
+
   "addBagInfo" should "insert a new bag relation into the database" in {
     val bagIds@(baseId :: _) = List.fill(3)(UUID.randomUUID())
     val times = List(
