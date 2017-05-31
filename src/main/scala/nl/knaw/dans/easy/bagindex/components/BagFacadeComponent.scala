@@ -20,11 +20,12 @@ import java.nio.file.Path
 import java.util.UUID
 
 import gov.loc.repository.bagit.{ Bag, BagFactory }
-import nl.knaw.dans.easy.bagindex.{ NotABagDirException, BaseId, InvalidIsVersionOfException, NoBagInfoFoundException, dateTimeFormatter }
+import nl.knaw.dans.easy.bagindex.{ BaseId, Doi, InvalidIsVersionOfException, NoBagInfoFoundException, NoDoiFoundException, NotABagDirException, dateTimeFormatter }
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters.mapAsScalaMapConverter
 import scala.util.{ Failure, Success, Try }
+import scala.xml.{ Node, XML }
 
 // TODO: (see also: easy-bag-store, easy-archive-bag) Candidate for new library easy-bagit-lib (a facade over the LOC lib)
 trait BagFacadeComponent {
@@ -38,6 +39,8 @@ trait BagFacadeComponent {
     def getIndexRelevantBagInfo(bagDir: Path): Try[(Option[BaseId], Option[DateTime])]
 
     def getBagInfo(bagDir: Path): Try[Map[String, String]]
+
+    def getDoi(bagDir: Path): Try[Doi]
   }
 }
 
@@ -75,6 +78,33 @@ trait Bagit4FacadeComponent extends BagFacadeComponent {
         if (parts.length != 2) Failure(InvalidIsVersionOfException(bagDir, uri.toASCIIString))
         else Try { UUID.fromString(parts(1)) }
       } else Failure(InvalidIsVersionOfException(bagDir, uri.toASCIIString))
+    }
+
+    def getDoi(datasetXML: Path): Try[Doi] = Try {
+      (XML.loadFile(datasetXML.toFile) \ "dcmiMetadata" \ "identifier")
+        .find(hasXsiType(NAMESPACE_IDENTIFIER_TYPE, "DOI"))
+        .map(node => Success(node.text))
+        .getOrElse(Failure(NoDoiFoundException(datasetXML)))
+    }.flatten
+
+    private val NAMESPACE_SCHEMA_INSTANCE = new URI("http://www.w3.org/2001/XMLSchema-instance")
+    private val NAMESPACE_IDENTIFIER_TYPE = new URI("http://easy.dans.knaw.nl/schemas/vocab/identifier-type/")
+
+    // TODO copied from easy-ingest-flow
+    private def hasXsiType(attrNamespace: URI, attrValue: String)(e: Node): Boolean = {
+      e.head
+        .attribute(NAMESPACE_SCHEMA_INSTANCE.toString, "type")
+        .exists {
+          case Seq(n) =>
+            val split = n.text.lastIndexOf(':')
+            if (split == -1 || split == n.text.length - 1) false
+            else {
+              val pref = n.text.substring(0, split)
+              val label = n.text.substring(split + 1)
+              e.head.getNamespace(pref) == attrNamespace.toString && label == attrValue
+            }
+          case _ => false
+        }
     }
   }
 }

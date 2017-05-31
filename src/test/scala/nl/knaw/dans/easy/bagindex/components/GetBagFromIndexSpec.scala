@@ -29,7 +29,7 @@ class GetBagFromIndexSpec extends BagIndexDatabaseFixture with GetBagFromIndex {
     val bagId = UUID.randomUUID()
     val time = DateTime.now()
 
-    addBagInfo(bagId, bagId, time) shouldBe a[Success[_]]
+    addBagInfo(bagId, bagId, time, testDoi) shouldBe a[Success[_]]
 
     inside(getBagSequence(bagId)) {
       case Success(ids) => ids should (have size 1 and contain only bagId)
@@ -44,8 +44,8 @@ class GetBagFromIndexSpec extends BagIndexDatabaseFixture with GetBagFromIndex {
       DateTime.now()
     )
 
-    bagIds.zip(times)
-      .map { case (bagId, time) => addBagInfo(bagId, baseId, time) }
+    (bagIds, times, testDois).zipped.toList
+      .map { case (bagId, time, doi) => addBagInfo(bagId, baseId, time, doi) }
       .collectResults shouldBe a[Success[_]]
 
     inside(getBagSequence(baseId)) {
@@ -61,8 +61,8 @@ class GetBagFromIndexSpec extends BagIndexDatabaseFixture with GetBagFromIndex {
       DateTime.now()
     )
 
-    bagIds.zip(times)
-      .map { case (bagId, time) => addBagInfo(bagId, baseId, time) }
+    (bagIds, times, testDois).zipped.toList
+      .map { case (bagId, time, doi) => addBagInfo(bagId, baseId, time, doi) }
       .collectResults shouldBe a[Success[_]]
 
     for (bagId <- bagIds) {
@@ -75,8 +75,6 @@ class GetBagFromIndexSpec extends BagIndexDatabaseFixture with GetBagFromIndex {
   it should "fail if the given bagId is not present in the database" in {
     // Note: the database is empty at this point!
     val someOtherBagId = UUID.randomUUID()
-    inside(getBagSequence(someOtherBagId)) {
-      case Failure(BagIdNotFoundException(id)) => id shouldBe someOtherBagId
-    }
+    getBagSequence(someOtherBagId) should matchPattern { case Failure(BagIdNotFoundException(`someOtherBagId`)) => }
   }
 }

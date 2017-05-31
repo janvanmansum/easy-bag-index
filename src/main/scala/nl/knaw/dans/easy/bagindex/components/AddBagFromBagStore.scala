@@ -43,7 +43,9 @@ trait AddBagFromBagStore {
     for {
       bagDir <- toLocation(bagId)
       (baseId, created) <- bagFacade.getIndexRelevantBagInfo(bagDir)
-      superBaseId <- baseId.map(add(bagId, _, created)).getOrElse(addBase(bagId, created))
+      datasetXMLPath = toDatasetXml(bagDir, bagId)
+      doi <- bagFacade.getDoi(datasetXMLPath)
+      superBaseId <- baseId.map(add(bagId, _, created, doi)).getOrElse(addBase(bagId, created, doi))
     } yield superBaseId
   }
 }

@@ -40,7 +40,7 @@ trait BagIndexApp extends AddBagToIndex
   override val dbUrl: String = properties.getString("bag-index.database.url")
   override val dbUsername: Option[String] = Option(properties.getString("bag-index.database.username"))
   override val dbPassword: Option[String] = Option(properties.getString("bag-index.database.password"))
-  override val baseDirs: Seq[Path] = properties.getList("bag-index.bag-store.base-dirs").asScala.map(dir => Paths.get(dir.asInstanceOf[String]))
+  override val baseDirs: Seq[Path] = properties.getList("bag-index.bag-store.base-dirs").asScala.map(dir => Paths.get(dir.asInstanceOf[String]).toAbsolutePath)
   override val bagFacade = new Bagit4Facade()
 
   def validateSettings(): Unit = {

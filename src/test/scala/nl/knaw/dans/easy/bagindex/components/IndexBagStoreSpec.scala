@@ -31,10 +31,10 @@ class IndexBagStoreSpec extends BagStoreFixture with Bagit4Fixture with BagIndex
     indexBagStore() shouldBe a[Success[_]]
 
     inside(getAllBagInfos) {
-      case Success(rels) => rels.map(rel => (rel.bagId, rel.baseId)) should contain allOf(
-        (uuid1, uuid1),
-        (uuid2, uuid1),
-        (uuid3, uuid1)
+      case Success(rels) => rels.map(rel => (rel.bagId, rel.baseId, rel.doi)) should contain allOf(
+        (uuid1, uuid1, doiMap(uuid1)),
+        (uuid2, uuid1, doiMap(uuid2)),
+        (uuid3, uuid1, doiMap(uuid3))
       )
     }
   }

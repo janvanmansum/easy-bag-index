@@ -20,17 +20,64 @@ import java.util.UUID
 import nl.knaw.dans.easy.bagindex.{ BagIndexApp, _ }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
+import org.json4s.JValue
 import org.json4s.JsonDSL._
 import org.json4s.native.JsonMethods._
 import org.scalatra._
 
-import scala.util.Try
-import scala.xml.PrettyPrinter
+import scala.util.{ Failure, Try }
+import scala.xml.{ Node, PrettyPrinter }
 
 case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugEnhancedLogging {
   import app._
+
+  private def toXml(bagInfo: BagInfo): Node = {
+    <bag-info>
+      <bag-id>{bagInfo.bagId.toString}</bag-id>
+      <base-id>{bagInfo.baseId.toString}</base-id>
+      <created>{bagInfo.created.toString(dateTimeFormatter)}</created>
+      <doi>{bagInfo.doi}</doi>
+    </bag-info>
+  }
+
+  private def toJson(bagInfo: BagInfo): JValue = {
+    "bag-info" -> {
+      ("bag-id" -> bagInfo.bagId.toString) ~
+        ("base-id" -> bagInfo.baseId.toString) ~
+        ("created" -> bagInfo.created.toString(dateTimeFormatter)) ~
+        ("doi" -> bagInfo.doi)
+    }
+  }
+
+  private def createResponse[T](toXml: T => Node)(toJson: T => JValue): T => String = {
+    request.getHeader("Accept") match {
+      case accept @ ("application/xml" | "text/xml") =>
+        contentType = accept
+        (new PrettyPrinter(80, 4).format(_: Node)) compose toXml
+      case _ =>
+        contentType = "application/json"
+        pretty _ compose (render _ compose toJson)
+    }
+  }
+
   get("/") {
     Ok("EASY Bag Index running.")
+  }
+
+  get("/search") {
+    def searchWithDoi(doi: Doi) = {
+      doTransaction(implicit c => {
+        app.getBagsWithDoi(doi)
+          .map(createResponse[Seq[BagInfo]](relations => <result>{relations.map(toXml)}</result>)(relations => "result" -> relations.map(toJson)))
+      })
+    }
+
+    val doi = params.get("doi")
+    doi.map(searchWithDoi)
+      // other searches added here with .orElse
+      .getOrElse(Failure(new IllegalArgumentException("query parameter not supported")))
+      .map(Ok(_))
+      .onError(defaultErrorHandling)
   }
 
   // GET: http://bag-index/bag-sequence?contains=<bagId>
@@ -53,31 +100,7 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
     doTransaction(implicit c => {
       Try { UUID.fromString(params("bagId")) }
         .flatMap(app.getBagInfo)
-        .map(relation =>
-          request.getHeader("Accept") match {
-            case accept @ ("application/xml" | "text/xml") =>
-              contentType = accept
-              new PrettyPrinter(80, 4).format {
-                // @formatter:off
-                <bag-info>
-                  <bag-id>{relation.bagId.toString}</bag-id>
-                  <base-id>{relation.baseId.toString}</base-id>
-                  <created>{relation.created.toString(dateTimeFormatter)}</created>
-                </bag-info>
-                // @formatter:on
-              }
-            case _ =>
-              contentType = "application/json"
-              pretty(render {
-                // @formatter:off
-                "bag-info" -> {
-                  ("bag-id" -> relation.bagId.toString) ~
-                  ("base-id" -> relation.baseId.toString) ~
-                  ("created" -> relation.created.toString(dateTimeFormatter))
-                }
-                // @formatter:on
-              })
-          })
+        .map(createResponse[BagInfo](toXml)(toJson))
     })
       .map(Ok(_))
       .onError(defaultErrorHandling)
@@ -103,6 +126,7 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
       case e: BagIdNotFoundException => NotFound(e.getMessage)
       case e: NotABagDirException => NotFound(e.getMessage)
       case e: BagNotFoundException => NotFound(e.getMessage)
+      case e: NoDoiFoundException => BadRequest(e.getMessage)
       case e =>
         logger.error("Unexpected type of failure", e)
         InternalServerError(s"[${DateTime.now}] Unexpected type of failure. Please consult the logs")

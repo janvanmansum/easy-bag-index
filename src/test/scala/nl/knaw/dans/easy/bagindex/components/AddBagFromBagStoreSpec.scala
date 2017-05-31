@@ -26,24 +26,21 @@ import scala.util.{ Failure, Success }
 class AddBagFromBagStoreSpec extends BagStoreFixture with BagIndexDatabaseFixture with Bagit4Fixture with AddBagToIndex with AddBagFromBagStore {
 
   private def assertBagInfoNotInDatabase(bagId: BagId): Unit = {
-    inside(getBagInfo(bagId)) {
-      case Failure(BagIdNotFoundException(id)) => id shouldBe bagId
-    }
+    getBagInfo(bagId) should matchPattern { case Failure(BagIdNotFoundException(`bagId`)) => }
   }
 
   private def assertBagInfoInDatabase(relation: BagInfo): Unit = {
     inside(getBagInfo(relation.bagId)) {
-      case Success(BagInfo(id, base, created)) =>
+      case Success(BagInfo(id, base, created, doi)) =>
         id shouldBe relation.bagId
         base shouldBe relation.baseId
         created.toString(dateTimeFormatter) shouldBe relation.created.toString(dateTimeFormatter)
+        doi shouldBe relation.doi
     }
   }
 
   private def assertAdditionReturnedExpectedBaseId(bagId: BagId, baseId: BaseId): Unit = {
-    inside(addFromBagStore(bagId)) {
-      case Success(base) => base shouldBe baseId
-    }
+    addFromBagStore(bagId) should matchPattern { case Success(`baseId`) => }
   }
 
   def addBaseTest(): Unit = {
@@ -53,7 +50,7 @@ class AddBagFromBagStoreSpec extends BagStoreFixture with BagIndexDatabaseFixtur
 
     assertAdditionReturnedExpectedBaseId(bagId, bagId)
 
-    assertBagInfoInDatabase(BagInfo(bagId, bagId, DateTime.parse("2017-01-16T14:35:00.888+01:00", ISODateTimeFormat.dateTime())))
+    assertBagInfoInDatabase(BagInfo(bagId, bagId, DateTime.parse("2017-01-16T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(bagId)))
   }
 
   def addDirectChildTest(): Unit = {
@@ -65,7 +62,7 @@ class AddBagFromBagStoreSpec extends BagStoreFixture with BagIndexDatabaseFixtur
 
     assertAdditionReturnedExpectedBaseId(bagId, baseId)
 
-    assertBagInfoInDatabase(BagInfo(bagId, baseId, DateTime.parse("2017-01-17T14:35:00.888+01:00", ISODateTimeFormat.dateTime())))
+    assertBagInfoInDatabase(BagInfo(bagId, baseId, DateTime.parse("2017-01-17T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(bagId)))
   }
 
   def addIndirectChildtest(): Unit = {
@@ -77,7 +74,7 @@ class AddBagFromBagStoreSpec extends BagStoreFixture with BagIndexDatabaseFixtur
 
     assertAdditionReturnedExpectedBaseId(bagId, superBaseId)
 
-    assertBagInfoInDatabase(BagInfo(bagId, superBaseId, DateTime.parse("2017-01-18T14:35:00.888+01:00", ISODateTimeFormat.dateTime())))
+    assertBagInfoInDatabase(BagInfo(bagId, superBaseId, DateTime.parse("2017-01-18T14:35:00.888+01:00", ISODateTimeFormat.dateTime()), doiMap(bagId)))
   }
 
   // add base bag
@@ -98,10 +95,6 @@ class AddBagFromBagStoreSpec extends BagStoreFixture with BagIndexDatabaseFixtur
   // add with invalid bagId
   it should "fail when the bagId is not found in the bagstore" in {
     val bagId = UUID.randomUUID()
-
-    inside(addFromBagStore(bagId)) {
-      case Failure(BagNotFoundException(id)) =>
-        id shouldBe bagId
-    }
+    addFromBagStore(bagId) should matchPattern { case Failure(BagNotFoundException(`bagId`)) => }
   }
 }

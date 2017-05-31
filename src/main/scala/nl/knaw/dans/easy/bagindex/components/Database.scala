@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.easy.bagindex.components
 
-import java.sql.Connection
+import java.sql.{ Connection, PreparedStatement, ResultSet }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex._
@@ -26,86 +26,104 @@ import resource._
 import scala.collection.immutable.Seq
 import scala.util.Try
 
+class Query(query: String, prepare: PreparedStatement => Unit)(implicit connection: Connection) {
+
+  val resultSet: ManagedResource[ResultSet] = for {
+    prepStatement <- managed(connection.prepareStatement(query))
+    _ = prepare(prepStatement)
+    resultSet <- managed(prepStatement.executeQuery())
+  } yield resultSet
+
+  def select[T](resultToObject: ResultSet => T)(onFailure: () => T): Try[T] = {
+    resultSet.map(result => if (result.next()) resultToObject(result)
+                            else onFailure()).tried
+  }
+
+  def selectMany[T](resultToObject: ResultSet => T): Try[Seq[T]] = {
+    resultSet
+      .map(result => Stream.continually(result.next())
+        .takeWhile(b => b)
+        .map(_ => resultToObject(result))
+        .toList)
+      .tried
+  }
+}
+object Query {
+  def apply(query: String)(prepare: PreparedStatement => Unit)(implicit connection: Connection): Query = {
+    new Query(query, prepare)
+  }
+}
+
 trait Database {
   this: DebugEnhancedLogging =>
+
+  private def getBagInfo(result: ResultSet): BagInfo = {
+    BagInfo(
+      bagId = UUID.fromString(result.getString("bagId").trim),
+      baseId = UUID.fromString(result.getString("base").trim),
+      created = DateTime.parse(result.getString("created").trim, dateTimeFormatter),
+      doi = result.getString("doi").trim)
+  }
+
+  private def getBagId(result: ResultSet): BagId = {
+    UUID.fromString(result.getString("bagId"))
+  }
+
+  private def getBaseId(result: ResultSet): BaseId = {
+    UUID.fromString(result.getString("base"))
+  }
 
   /**
    * Return the baseId of the given bagId if the latter exists.
    * If the bagId does not exist, a `BagIdNotFoundException` is returned.
    *
-   * @param bagId the bagId for which the base bagId needs to be returned
+   * @param bagId      the bagId for which the base bagId needs to be returned
    * @param connection the connection to the database on which this query needs to be run
    * @return the baseId of the given bagId if it exists; failure otherwise
    */
   def getBaseBagId(bagId: BagId)(implicit connection: Connection): Try[BaseId] = {
     trace(bagId)
-
-    val resultSet = for {
-      prepStatement <- managed(connection.prepareStatement("SELECT base FROM bag_info WHERE bagId=?;"))
-      _ = prepStatement.setString(1, bagId.toString)
-      resultSet <- managed(prepStatement.executeQuery())
-    } yield resultSet
-
-    resultSet
-      .map(result =>
-        if (result.next())
-          UUID.fromString(result.getString("base"))
-        else
-          throw BagIdNotFoundException(bagId))
-      .tried
+    Query("SELECT base FROM bag_info WHERE bagId=?;")(_.setString(1, bagId.toString))
+      .select(getBaseId)(() => throw BagIdNotFoundException(bagId))
   }
 
   /**
    * Returns a sequence of all bagIds that have the given baseId as their base, ordered by the 'created' timestamp.
    *
-   * @param baseId the baseId used during this search
+   * @param baseId     the baseId used during this search
    * @param connection the connection to the database on which this query needs to be run
    * @return a sequence of all bagIds with a given baseId
    */
   def getAllBagsWithBase(baseId: BaseId)(implicit connection: Connection): Try[Seq[BagId]] = {
     trace(baseId)
-
-    val resultSet = for {
-      prepStatement <- managed(connection.prepareStatement("SELECT bagId FROM bag_info WHERE base=? ORDER BY created;"))
-      _ = prepStatement.setString(1, baseId.toString)
-      resultSet <- managed(prepStatement.executeQuery())
-    } yield resultSet
-
-    resultSet
-      .map(result => Stream.continually(result.next())
-        .takeWhile(b => b)
-        .map(_ => UUID.fromString(result.getString("bagId")))
-        .toList)
-      .tried
+    Query("SELECT bagId FROM bag_info WHERE base=? ORDER BY created;")(_.setString(1, baseId.toString))
+      .selectMany(getBagId)
   }
 
   /**
    * Returns the `Relation` object for the given bagId if it is present in the database.
    * If the bagId does not exist, a `BagIdNotFoundException` is returned.
    *
-   * @param bagId the bagId corresponding to the relation
+   * @param bagId      the bagId corresponding to the relation
    * @param connection the connection to the database on which this query needs to be run
    * @return the relation data of the given bagId
    */
   def getBagInfo(bagId: BagId)(implicit connection: Connection): Try[BagInfo] = {
     trace(bagId)
+    Query("SELECT * FROM bag_info WHERE bagId=?;")(_.setString(1, bagId.toString))
+      .select(getBagInfo)(() => throw BagIdNotFoundException(bagId))
+  }
 
-    val resultSet = for {
-      prepStatement <- managed(connection.prepareStatement("SELECT * FROM bag_info WHERE bagId=?;"))
-      _ = prepStatement.setString(1, bagId.toString)
-      resultSet <- managed(prepStatement.executeQuery())
-    } yield resultSet
-
-    resultSet
-      .map(result =>
-        if (result.next())
-          BagInfo(
-            bagId = UUID.fromString(result.getString("bagId").trim),
-            baseId = UUID.fromString(result.getString("base").trim),
-            created = DateTime.parse(result.getString("created").trim, dateTimeFormatter))
-        else
-          throw BagIdNotFoundException(bagId))
-      .tried
+  /**
+   * Returns a sequence of all bag relations that have a given `DOI`.
+   *
+   * @param doi        the DOI to be searched
+   * @param connection the connection to the database on which the query needs to be run
+   * @return a list of bag relations with a given `DOI`
+   */
+  def getBagsWithDoi(doi: Doi)(implicit connection: Connection): Try[Seq[BagInfo]] = {
+    trace(doi)
+    Query("SELECT * FROM bag_info WHERE doi=?;")(_.setString(1, doi)).selectMany(getBagInfo)
   }
 
   /**
@@ -116,40 +134,28 @@ trait Database {
    * @return a list of all bag relations
    */
   def getAllBagInfos(implicit connection: Connection): Try[Seq[BagInfo]] = {
-    val resultSet = for {
-      statement <- managed(connection.createStatement)
-      resultSet <- managed(statement.executeQuery("SELECT * FROM bag_info;"))
-    } yield resultSet
-
-    resultSet
-      .map(result => Stream.continually(result.next())
-        .takeWhile(b => b)
-        .map(_ => BagInfo(
-          bagId = UUID.fromString(result.getString("bagId")),
-          baseId = UUID.fromString(result.getString("base")),
-          created = DateTime.parse(result.getString("created"), dateTimeFormatter)))
-        .toList)
-      .tried
+    Query("SELECT * FROM bag_info;")(_ => ()).selectMany(getBagInfo)
   }
 
   /**
    * Add a bag relation to the database. A bag relation consists of a unique bagId (that is not yet
    * included in the database), a base bagId and a 'created' timestamp.
    *
-   * @param bagId the unique bag identifier
-   * @param baseId the base bagId of the bagId
-   * @param created the date/time at which the bag was created
+   * @param bagId      the unique bag identifier
+   * @param baseId     the base bagId of the bagId
+   * @param created    the date/time at which the bag was created
    * @param connection the connection to the database on which this action needs to be applied
    * @return `Success` if the bag relation was added successfully; `Failure` otherwise
    */
-  def addBagInfo(bagId: BagId, baseId: BaseId, created: DateTime)(implicit connection: Connection): Try[Unit] = {
+  def addBagInfo(bagId: BagId, baseId: BaseId, created: DateTime, doi: Doi)(implicit connection: Connection): Try[Unit] = {
     trace(bagId, baseId, created)
 
-    managed(connection.prepareStatement("INSERT INTO bag_info VALUES (?, ?, ?);"))
+    managed(connection.prepareStatement("INSERT INTO bag_info VALUES (?, ?, ?, ?);"))
       .map(prepStatement => {
         prepStatement.setString(1, bagId.toString)
         prepStatement.setString(2, baseId.toString)
         prepStatement.setString(3, created.toString(dateTimeFormatter))
+        prepStatement.setString(4, doi)
         prepStatement.executeUpdate()
       })
       .tried

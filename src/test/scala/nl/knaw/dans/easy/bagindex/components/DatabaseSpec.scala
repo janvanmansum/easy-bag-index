@@ -32,31 +32,29 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
       DateTime.parse("2004-01-01"),
       DateTime.now()
     )
+    val dois = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
 
-    bagIds.zip(times)
-      .map { case (bagId, time) => addBagInfo(bagId, baseId, time) }
+    (bagIds, times, dois).zipped.toList
+      .map { case (bagId, time, doi) => addBagInfo(bagId, baseId, time, doi) }
       .collectResults shouldBe a[Success[_]]
 
     for (bagId <- bagIds) {
-      inside(getBaseBagId(bagId)) {
-        case Success(base) => base shouldBe baseId
-      }
+      getBaseBagId(bagId) should matchPattern { case Success(`baseId`) => }
     }
   }
 
   it should "return a Failure with a BagIdNotFoundException inside if the bagId is not present in the database" in {
     // Note: the database is empty at this point!
     val someBagId = UUID.randomUUID()
-    inside(getBaseBagId(someBagId)) {
-      case Failure(BagIdNotFoundException(id)) => id shouldBe someBagId
-    }
+    getBaseBagId(someBagId) should matchPattern { case Failure(BagIdNotFoundException(`someBagId`)) => }
   }
 
   "getAllBagsWithBase" should "return a sequence with only the baseId when there are no child bags declared" in {
     val bagId = UUID.randomUUID()
     val time = DateTime.now()
+    val doi = "10.5072/dans-x6f-kf6x"
 
-    addBagInfo(bagId, bagId, time) shouldBe a[Success[_]]
+    addBagInfo(bagId, bagId, time, doi) shouldBe a[Success[_]]
 
     inside(getAllBagsWithBase(bagId)) {
       case Success(ids) => ids should (have size 1 and contain only bagId)
@@ -70,6 +68,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
       DateTime.parse("2004-01-01"),
       DateTime.now()
     )
+    val dois1 = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
 
     val bagIds2@(baseId2 :: _) = List.fill(5)(UUID.randomUUID())
     val times2 = List(
@@ -79,11 +78,12 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
       DateTime.parse("2017-03-09"),
       DateTime.parse("2018")
     )
+    val dois2 = List("10.5072/dans-a9b-cd8e", "10.5072/dans-f7g-hi65", "10.5072/dans-j4k-lm32", "10.5072/dans-n1o-pq98", "10.5072/dans-r7s-tu65")
 
     List(
-      (bagIds1.zip(times1), baseId1),
-      (bagIds2.zip(times2), baseId2))
-      .flatMap { case (xs, base) => xs.map { case (bagId, time) => addBagInfo(bagId, base, time) }}
+      ((bagIds1, times1, dois1).zipped.toList, baseId1),
+      ((bagIds2, times2, dois2).zipped.toList, baseId2))
+      .flatMap { case (xs, base) => xs.map { case (bagId, time, doi) => addBagInfo(bagId, base, time, doi) }}
       .collectResults shouldBe a[Success[_]]
 
     inside(getAllBagsWithBase(baseId1)) {
@@ -101,26 +101,54 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
       DateTime.parse("2004-01-01"),
       DateTime.now()
     )
+    val dois = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
 
-    bagIds.zip(times)
-      .map { case (bagId, time) => addBagInfo(bagId, baseId, time) }
+    (bagIds, times, dois).zipped.toList
+      .map { case (bagId, time, doi) => addBagInfo(bagId, baseId, time, doi) }
       .collectResults shouldBe a[Success[_]]
 
-    for ((bagId, created) <- bagIds.zip(times)) {
-      inside(getBagInfo(bagId)) {
-        case Success(BagInfo(bag, base, time)) =>
-          bag shouldBe bagId
-          base shouldBe baseId
-          time shouldBe created
-      }
-    }
+    for ((bagId, created, doi) <- (bagIds, times, dois).zipped.toList)
+      getBagInfo(bagId) should matchPattern { case Success(BagInfo(`bagId`, `baseId`, `created`, `doi`)) => }
   }
 
   it should "return a BagIdNotFoundException when the given bagId does not exist in the database" in {
     // Note: the database is empty at this point!
     val someBagId = UUID.randomUUID()
-    inside(getBagInfo(someBagId)) {
-      case Failure(BagIdNotFoundException(id)) => id shouldBe someBagId
+    getBagInfo(someBagId) should matchPattern { case Failure(BagIdNotFoundException(`someBagId`)) => }
+  }
+
+  "getBagsWithDoi" should "return all bags with a certain DOI" in {
+    val bagIds@bagId1 :: bagId2 :: Nil = List.fill(2)(UUID.randomUUID())
+    val times@time1 :: time2 :: Nil = List(
+      DateTime.parse("1992-07-30T16:00:00"),
+      DateTime.now()
+    )
+    val dois@doi1 :: _ = List.fill(2)("10.5072/dans-x6f-kf6x")
+
+    (bagIds, times, dois).zipped.toList
+      .map { case (bagId, time, doi) => addBagInfo(bagId, bagId, time, doi) }
+      .collectResults shouldBe a[Success[_]]
+
+    inside(getBagsWithDoi(doi1)) {
+      case Success(bags) => bags should (have size 2 and contain only (BagInfo(bagId1, bagId1, time1, doi1), BagInfo(bagId2, bagId2, time2, doi1)))
+    }
+  }
+
+  it should "return the bag with a certain DOI if there is only one" in {
+    val bagId = UUID.randomUUID()
+    val time = DateTime.parse("1992-07-30T16:00:00")
+    val doi = "10.5072/dans-x6f-kf6x"
+
+    addBagInfo(bagId, bagId, time, doi) shouldBe a[Success[_]]
+
+    inside(getBagsWithDoi(doi)) {
+      case Success(bags) => bags should (have size 1 and contain only BagInfo(bagId, bagId, time, doi))
+    }
+  }
+
+  it should "return an empty sequence when the DOI isn't found" in {
+    inside(getBagsWithDoi("10.5072/dans-x6f-kf6x")) {
+      case Success(bags) => bags shouldBe empty
     }
   }
 
@@ -131,12 +159,13 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
       DateTime.parse("2004-01-01"),
       DateTime.now()
     )
+    val dois = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
 
-    bagIds.zip(times)
-      .map { case (bagId, time) => addBagInfo(bagId, baseId, time) }
+    (bagIds, times, dois).zipped.toList
+      .map { case (bagId, time, doi) => addBagInfo(bagId, baseId, time, doi) }
       .collectResults shouldBe a[Success[_]]
 
-    val rel1 :: rel2 :: rels = bagIds.zip(times).map { case (bagId, time) => BagInfo(bagId, baseId, time) }
+    val rel1 :: rel2 :: rels = (bagIds, times, dois).zipped.toList.map { case (bagId, time, doi) => BagInfo(bagId, baseId, time, doi) }
 
     inside(getAllBagInfos) {
       case Success(relations) => relations should contain allOf(rel1, rel2, rels: _*)
@@ -147,9 +176,10 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     val bagId = UUID.randomUUID()
     val baseId = UUID.randomUUID()
     val time = DateTime.now()
+    val doi = "10.5072/dans-x6f-kf66"
 
-    val result1 = addBagInfo(bagId, baseId, time)
-    val result2 = addBagInfo(bagId, baseId, time)
+    val result1 = addBagInfo(bagId, baseId, time, doi)
+    val result2 = addBagInfo(bagId, baseId, time, doi)
 
     result1 shouldBe a[Success[_]]
     inside(result2) {
@@ -157,7 +187,7 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     }
 
     inside(getAllBagInfos) {
-      case Success(relations) => relations should contain (BagInfo(bagId, baseId, time))
+      case Success(relations) => relations should contain (BagInfo(bagId, baseId, time, doi))
     }
   }
 }

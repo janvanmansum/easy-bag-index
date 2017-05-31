@@ -18,8 +18,8 @@ package nl.knaw.dans.easy.bagindex.components
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex.{ BagId, BagIndexDatabaseFixture, BagInfo }
-import org.joda.time.DateTime
 import nl.knaw.dans.lib.error.TraversableTryExtensions
+import org.joda.time.DateTime
 
 import scala.util.Success
 
@@ -52,18 +52,30 @@ class IndexBagStoreDatabaseSpec extends BagIndexDatabaseFixture with IndexBagSto
     val dateY = DateTime.parse("2015")
     val dateZ = DateTime.parse("2014")
 
-    val relations = BagInfo(bagIdA, bagIdE, dateA) ::
-      BagInfo(bagIdB, bagIdA, dateB) ::
-      BagInfo(bagIdC, bagIdA, dateC) ::
-      BagInfo(bagIdD, bagIdB, dateD) ::
-      BagInfo(bagIdE, bagIdF, dateE) ::
-      BagInfo(bagIdF, bagIdF, dateF) ::
-      BagInfo(bagIdG, bagIdC, dateG) ::
-      BagInfo(bagIdX, bagIdY, dateX) ::
-      BagInfo(bagIdY, bagIdZ, dateY) ::
-      BagInfo(bagIdZ, bagIdZ, dateZ) :: Nil
+    // dois
+    val doiA = "10.5072/dans-a6f-kf66"
+    val doiB = "10.5072/dans-b6f-kf66"
+    val doiC = "10.5072/dans-c6f-kf66"
+    val doiD = "10.5072/dans-d6f-kf66"
+    val doiE = "10.5072/dans-e6f-kf66"
+    val doiF = "10.5072/dans-f6f-kf66"
+    val doiG = "10.5072/dans-g6f-kf66"
+    val doiX = "10.5072/dans-x6f-kf66"
+    val doiY = "10.5072/dans-y6f-kf66"
+    val doiZ = "10.5072/dans-z6f-kf66"
 
-    relations.map(info => addBagInfo(info.bagId, info.baseId, info.created)).collectResults shouldBe a[Success[_]]
+    val relations = BagInfo(bagIdA, bagIdE, dateA, doiA) ::
+      BagInfo(bagIdB, bagIdA, dateB, doiB) ::
+      BagInfo(bagIdC, bagIdA, dateC, doiC) ::
+      BagInfo(bagIdD, bagIdB, dateD, doiD) ::
+      BagInfo(bagIdE, bagIdF, dateE, doiE) ::
+      BagInfo(bagIdF, bagIdF, dateF, doiF) ::
+      BagInfo(bagIdG, bagIdC, dateG, doiG) ::
+      BagInfo(bagIdX, bagIdY, dateX, doiX) ::
+      BagInfo(bagIdY, bagIdZ, dateY, doiY) ::
+      BagInfo(bagIdZ, bagIdZ, dateZ, doiZ) :: Nil
+
+    relations.map(info => addBagInfo(info.bagId, info.baseId, info.created, info.doi)).collectResults shouldBe a[Success[_]]
 
     Map(
       'a' -> (bagIdA, dateA),

@@ -26,12 +26,12 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
   def addBaseTest(): UUID = {
     val bagId = UUID.randomUUID()
 
-    inside(addBase(bagId)) {
+    inside(addBase(bagId, doi = testDoi)) {
       case Success(superBase) => superBase shouldBe bagId
     }
 
     inside(getAllBagInfos) {
-      case Success(relations) => relations.map { case BagInfo(id, base, _) => (id, base) } should contain ((bagId, bagId))
+      case Success(relations) => relations.map { case BagInfo(id, base, _, _) => (id, base) } should contain ((bagId, bagId))
     }
 
     bagId
@@ -40,13 +40,12 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
   def addChildBagIdTest(): (UUID, UUID) = {
     val baseId = addBaseTest()
     val bagId = UUID.randomUUID()
+    val doi = testDoi.replaceAll("6", "7")
 
-    inside(add(bagId, baseId)) {
-      case Success(superBase) => superBase shouldBe baseId
-    }
+    add(bagId, baseId, doi = doi) should matchPattern { case Success(`baseId`) => }
 
     inside(getAllBagInfos) {
-      case Success(relations) => relations.map { case BagInfo(id, base, _) => (id, base) } should contain ((bagId, baseId))
+      case Success(relations) => relations.map { case BagInfo(id, base, _, _) => (id, base) } should contain ((bagId, baseId))
     }
 
     (bagId, baseId)
@@ -55,13 +54,12 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
   def addChildBagIdWithSuperBaseTest(): (UUID, UUID, UUID) = {
     val (baseId, superBaseId) = addChildBagIdTest()
     val bagId = UUID.randomUUID()
+    val doi = testDoi.replaceAll("6", "8")
 
-    inside(add(bagId, baseId)) {
-      case Success(superBase) => superBase shouldBe superBaseId
-    }
+    add(bagId, baseId, doi = doi) should matchPattern { case Success(`superBaseId`) => }
 
     inside(getAllBagInfos) {
-      case Success(relations) => relations.map { case BagInfo(id, base, _) => (id, base) } should contain ((bagId, superBaseId))
+      case Success(relations) => relations.map { case BagInfo(id, base, _, _) => (id, base) } should contain ((bagId, superBaseId))
     }
 
     (bagId, baseId, superBaseId)
@@ -88,8 +86,6 @@ class AddBagToIndexSpec extends BagIndexDatabaseFixture with AddBagToIndex {
       case Success(relations) => relations.map(_.bagId) should not contain baseId
     }
 
-    inside(add(bagId, baseId)) {
-      case Failure(BagIdNotFoundException(id)) => id shouldBe baseId
-    }
+    add(bagId, baseId, doi = testDoi) should matchPattern { case Failure(BagIdNotFoundException(`baseId`)) => }
   }
 }

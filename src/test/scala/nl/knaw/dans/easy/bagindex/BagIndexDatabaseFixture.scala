@@ -15,11 +15,12 @@
  */
 package nl.knaw.dans.easy.bagindex
 
+import java.nio.file.{ Files, Path }
 import java.sql.Connection
 
 import nl.knaw.dans.easy.bagindex.components.{ Database, DatabaseAccess }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.scalatest.BeforeAndAfter
+import org.scalatest.BeforeAndAfterEach
 
 import scala.io.Source
 import resource._
@@ -27,13 +28,15 @@ import resource._
 import scala.util.Success
 
 trait BagIndexDatabaseFixture extends TestSupportFixture
-  with BeforeAndAfter
+  with BeforeAndAfterEach
   with DatabaseAccess
   with Database
   with DebugEnhancedLogging {
 
+  val databaseFile: Path = testDir.resolve("database.db")
+
   override val dbDriverClassName: String = "org.sqlite.JDBC"
-  override val dbUrl: String = s"jdbc:sqlite:${testDir.resolve("database.db").toString}"
+  override val dbUrl: String = s"jdbc:sqlite:${databaseFile.toString}"
   override val dbUsername = Option.empty[String]
   override val dbPassword = Option.empty[String]
 
@@ -55,12 +58,15 @@ trait BagIndexDatabaseFixture extends TestSupportFixture
     pool
   }
 
-  before {
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    Files.deleteIfExists(databaseFile)
     initConnectionPool()
   }
 
-  after {
+  override def afterEach(): Unit = {
     connection.close()
     closeConnectionPool()
+    super.afterEach()
   }
 }

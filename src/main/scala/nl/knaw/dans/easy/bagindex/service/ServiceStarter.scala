@@ -29,11 +29,9 @@ class ServiceStarter extends Daemon with DebugEnhancedLogging {
 
   def start(): Unit = {
     logger.info("Starting service...")
-    bagIndexService.start().map {
-      case _ => logger.info("Service started.")
-    }.recover {
-      case t => logger.error("Service failed to start", t)
-    }
+    bagIndexService.start()
+      .map(_ => logger.info("Service started."))
+      .recover { case t => logger.error("Service failed to start", t) }
   }
 
   def stop(): Unit = {

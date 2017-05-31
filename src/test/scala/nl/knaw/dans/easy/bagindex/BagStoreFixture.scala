@@ -16,6 +16,7 @@
 package nl.knaw.dans.easy.bagindex
 
 import java.nio.file.{ Path, Paths }
+import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex.components.{ BagStoreAccess, Bagit4FacadeComponent }
 import org.apache.commons.io.FileUtils
@@ -29,4 +30,14 @@ trait BagStoreFixture extends TestSupportFixture with BagStoreAccess {
     Seq(bagStoreBaseDir)
     // TODO: Add an extra test bag-store
   }
+
+  /**
+   * these are the UUID -> DOI mappings from the bag-store in `test/resources/bag-store`
+   */
+  lazy val doiMap = Map(
+    UUID.fromString("00000000-0000-0000-0000-000000000001") -> "10.5072/dans-2xg-umq8",
+    UUID.fromString("00000000-0000-0000-0000-000000000002") -> "10.5072/dans-2xg-umq9",
+    UUID.fromString("00000000-0000-0000-0000-000000000003") -> "10.5072/dans-2xg-umq0"
+  )
+  def doiMap(uuidString: String): String = doiMap(UUID.fromString(uuidString))
 }
