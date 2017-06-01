@@ -17,4 +17,6 @@
 
 
 NUMBER_OF_INSTALLATIONS=$1
-echo "Executing PRE-REMOVE. Number of current installations: $NUMBER_OF_INSTALLATIONS"
+echo "PRE-REMOVE: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
+
+echo "PRE-REMOVE: DONE."

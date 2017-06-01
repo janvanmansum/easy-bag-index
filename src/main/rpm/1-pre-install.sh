@@ -17,12 +17,28 @@
 
 
 NUMBER_OF_INSTALLATIONS=$1
-echo "Executing PRE-INSTALL. Number of current installations: $NUMBER_OF_INSTALLATIONS"
+MODULE_NAME=easy-bag-index
+MODULE_USER=$MODULE_NAME
+echo "PRE-INSTALL: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
 
-USER_NAME=easy-bag-index
-id -u $USER_NAME 2> /dev/null 1> /dev/null
+if [ $NUMBER_OF_INSTALLATIONS -gt 0 ]; then
+    echo -n "Attempting to stop service... "
+    service $MODULE_NAME stop  2> /dev/null 1> /dev/null
+    if [ $? -ne 0 ]; then
+        systemctl stop $MODULE_NAME 2> /dev/null 1> /dev/null
+    fi
+    echo "OK"
+fi
+
+id -u $MODULE_USER 2> /dev/null 1> /dev/null
 
 if [ "$?" == "1" ]; # User not found
 then
-    useradd $USER_NAME 2> /dev/null
+    echo -n "Creating module user: ${MODULE_USER}... "
+    useradd $MODULE_USER 2> /dev/null
+    echo "OK"
+else
+    echo "Module user $MODULE_USER already exists. No action taken."
 fi
+
+echo "PRE-INSTALL: DONE."
