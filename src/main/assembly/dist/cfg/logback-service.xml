@@ -2,9 +2,9 @@
 <configuration scan="true" scanPeriod="1 minute">
 	<appender name="FILE"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<file>/var/log/easy-bag-index/easy-bag-index.log</file>
+		<file>/var/opt/dans.knaw.nl/log/easy-bag-index/easy-bag-index.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>/var/log/easy-bag-index/easy-bag-index.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<fileNamePattern>/var/opt/dans.knaw.nl/log/easy-bag-index/easy-bag-index.%d{yyyy-MM-dd}.log</fileNamePattern>
 			<maxHistory>30</maxHistory>
 		</rollingPolicy>
 		<encoder>

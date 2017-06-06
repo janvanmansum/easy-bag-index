@@ -7,7 +7,7 @@
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
 
-            http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,12 +22,12 @@
     <parent>
         <groupId>nl.knaw.dans.shared</groupId>
         <artifactId>dans-scala-prototype</artifactId>
-        <version>1.42</version>
+        <version>1.45</version>
     </parent>
 
     <groupId>nl.knaw.dans.easy</groupId>
     <artifactId>easy-bag-index</artifactId>
-    <version>1.x-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
 
     <name>EASY Bag Index</name>
     <url>https://github.com/DANS-KNAW/easy-bag-index</url>
@@ -235,6 +235,38 @@
                         <configuration>
                             <classpathScope>test</classpathScope>
                             <mainClass>nl.knaw.dans.easy.bagindex.service.BagIndexService</mainClass>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>rpm</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <file>
+                    <exists>/usr/local/bin/rpm</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>rpm-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-rpm</id>
+                                <goals>
+                                    <goal>attached-rpm</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <group>Applications/Archiving</group>
+                            <requires combine.children="append">
+                                <require>jsvc</require>
+                                <require>postgresql</require>
+                            </requires>
                         </configuration>
                     </plugin>
                 </plugins>

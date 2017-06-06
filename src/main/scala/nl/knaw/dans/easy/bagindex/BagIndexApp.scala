@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,8 +33,15 @@ trait BagIndexApp extends AddBagToIndex
   with BagStoreAccess
   with Bagit4FacadeComponent
   with DebugEnhancedLogging {
+  private val home = Paths.get(System.getProperty("app.home"))
+  private val cfg = Seq(
+    Paths.get(s"/etc/opt/dans.knaw.nl/easy-bag-index/"),
+    home.resolve("cfg")).find(Files.exists(_)).getOrElse { throw new IllegalStateException("No configuration directory found")}
 
-  val properties = new PropertiesConfiguration(new File(System.getProperty("app.home"), "cfg/application.properties"))
+  val version: String = resource.managed(scala.io.Source.fromFile(home.resolve("bin/version").toFile)).acquireAndGet {
+    _.mkString
+  }
+  val properties = new PropertiesConfiguration(cfg.resolve("application.properties").toFile)
 
   override val dbDriverClassName: String = properties.getString("bag-index.database.driver-class")
   override val dbUrl: String = properties.getString("bag-index.database.url")

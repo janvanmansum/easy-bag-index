@@ -2,7 +2,7 @@
 Description=EASY Bag Index Service
 
 [Service]
-ExecStart=/usr/local/easy-bag-index/bin/easy-bag-index-service-start
+ExecStart=/opt/dans.knaw.nl/easy-bag-index/bin/easy-bag-index-service-start
 
 User=easy-bag-index
 Group=easy-bag-index
