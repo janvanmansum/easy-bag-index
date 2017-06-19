@@ -265,7 +265,7 @@
                             <group>Applications/Archiving</group>
                             <requires combine.children="append">
                                 <require>jsvc</require>
-                                <require>postgresql</require>
+                                <require>postgresql-server</require>
                             </requires>
                         </configuration>
                     </plugin>
