@@ -16,8 +16,9 @@
 package nl.knaw.dans.easy.bagindex
 
 import nl.knaw.dans.easy.bagindex.components.Bagit4FacadeComponent
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
-trait Bagit4Fixture extends TestSupportFixture with Bagit4FacadeComponent {
+trait Bagit4Fixture extends TestSupportFixture with Bagit4FacadeComponent with DebugEnhancedLogging {
 
   override val bagFacade = new Bagit4Facade()
 }

@@ -18,17 +18,27 @@ package nl.knaw.dans.easy.bagindex
 import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.components.{ BagStoreAccess, Bagit4FacadeComponent }
+import nl.knaw.dans.easy.bagindex.components.BagStoreAccess
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
+import org.scalatest.BeforeAndAfterEach
 
-trait BagStoreFixture extends TestSupportFixture with BagStoreAccess {
+trait BagStoreFixture extends TestSupportFixture with BeforeAndAfterEach with BagStoreAccess with DebugEnhancedLogging {
 
-  override val baseDirs: Seq[Path] = {
+  def initBagStores: Path = {
     val bagStoreBaseDir = testDir.resolve("bag-store")
     val origBagStore = Paths.get("src/test/resources/bag-store")
+    FileUtils.deleteDirectory(bagStoreBaseDir.toFile)
     FileUtils.copyDirectory(origBagStore.toFile, bagStoreBaseDir.toFile)
-    Seq(bagStoreBaseDir)
-    // TODO: Add an extra test bag-store
+    bagStoreBaseDir
+  }
+
+  override val baseDirs: Seq[Path] = Seq(initBagStores)
+
+  // in some tests we delete the bagstores, so to be sure, we initialize them for every test
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    initBagStores
   }
 
   /**
