@@ -18,6 +18,7 @@ package nl.knaw.dans.easy.bagindex.service
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex.{ BagIndexApp, _ }
+import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 import org.json4s.JValue
@@ -77,7 +78,7 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
       // other searches added here with .orElse
       .getOrElse(Failure(new IllegalArgumentException("query parameter not supported")))
       .map(Ok(_))
-      .onError(defaultErrorHandling)
+      .getOrRecover(defaultErrorHandling)
   }
 
   // GET: http://bag-index/bag-sequence?contains=<bagId>
@@ -90,7 +91,7 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
         .flatMap(app.getBagSequence)
     })
       .map(ids => Ok(ids.mkString("\n")))
-      .onError(defaultErrorHandling)
+      .getOrRecover(defaultErrorHandling)
   }
 
   // GET: http://bag-index/bags/<bagId>
@@ -103,7 +104,7 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
         .map(createResponse[BagInfo](toXml)(toJson))
     })
       .map(Ok(_))
-      .onError(defaultErrorHandling)
+      .getOrRecover(defaultErrorHandling)
   }
 
   // PUT: http://bag-index/bags/<bagId>
@@ -115,7 +116,7 @@ case class BagIndexServlet(app: BagIndexApp) extends ScalatraServlet with DebugE
         .flatMap(addFromBagStore)
     })
       .map(_ => Created())
-      .onError(defaultErrorHandling)
+      .getOrRecover(defaultErrorHandling)
   }
 
   // TODO (low prio) zelfde interface in cmd als in servlet

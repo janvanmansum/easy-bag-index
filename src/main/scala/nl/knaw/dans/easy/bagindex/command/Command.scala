@@ -15,10 +15,11 @@
  */
 package nl.knaw.dans.easy.bagindex.command
 
-import nl.knaw.dans.easy.bagindex.{ BagIndexApp, TryExtensions }
+import nl.knaw.dans.easy.bagindex.BagIndexApp
 
 import scala.language.reflectiveCalls
 import scala.util.{ Failure, Success }
+import nl.knaw.dans.lib.error._
 
 object Command extends App with BagIndexApp {
 
@@ -46,8 +47,8 @@ object Command extends App with BagIndexApp {
     }
   })
     .map(msg => println(s"OK: $msg"))
-    .ifFailure { case e => logger.error(e.getMessage, e) }
-    .onError(e => println(s"FAILED: ${e.getMessage}"))
+    .doIfFailure { case e => logger.error(e.getMessage, e) }
+    .getOrRecover(e => println(s"FAILED: ${e.getMessage}"))
 
   closeConnectionPool()
 }

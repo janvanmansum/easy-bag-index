@@ -51,36 +51,6 @@ package object bagindex {
     }
   }
 
-  implicit class TryExtensions[T](val t: Try[T]) extends AnyVal {
-    // TODO candidate for dans-scala-lib, see also implementation/documentation in easy-split-multi-deposit
-    def onError[S >: T](handle: Throwable => S): S = {
-      t match {
-        case Success(value) => value
-        case Failure(throwable) => handle(throwable)
-      }
-    }
-
-    def ifSuccess(f: T => Unit): Try[T] = {
-      t match {
-        case success@Success(x) => Try {
-          f(x)
-          return success
-        }
-        case e => e
-      }
-    }
-
-    def ifFailure(f: PartialFunction[Throwable, Unit]): Try[T] = {
-      t match {
-        case failure@Failure(e) if f.isDefinedAt(e) => Try {
-          f(e)
-          return failure
-        }
-        case x => x
-      }
-    }
-  }
-
   /**
    * Conversions between Scala Option and Java 8 Optional.
    */
@@ -96,8 +66,7 @@ package object bagindex {
     def asScala: Option[T] = if (opt.isPresent) Some(opt.get()) else None
   }
 
-
-  // TODO: WILL BE IN dans-scala-lib
+  // TODO: will NOT be in dans-scala-lib, because it actually doesn't work correctly...
   implicit class FailFastStream[T](val stream: Stream[Try[T]]) {
     def failFast: Try[Stream[T]] = {
       stream.find(_.isFailure)
