@@ -59,26 +59,20 @@ class CommandLineOptions(args: Array[String], properties: PropertiesConfiguratio
   footer("")
 
   object interaction {
-    /**
-     * Interactive command line interface to ask whether the user is sure to index the whole bag-store
-     * and thereby delete all current data in the bag-index.
-     *
-     * @return `true` if the user wants to proceed, `false` otherwise
-     */
     def deleteBeforeIndexing(): Boolean = {
       @tailrec
       def recursiveAsk(): Boolean = {
+        print("Proceed? (y/n): ")
         StdIn.readLine().toLowerCase match {
-          case "yes" => true
-          case "no" => false
+          case "y" => true
+          case "n" => false
           case _ =>
-            println("either use 'Yes' or 'No'")
+            println("Answer y or n.")
             recursiveAsk()
         }
       }
 
-      println("Before the bag-store is indexed, the current index needs to be deleted?")
-      println("Do you want to proceed? (Yes/No)")
+      println("WARNING: you are about to rebuild the entire index. You should NOT attempt this while the daemon is running.")
       recursiveAsk()
     }
   }
