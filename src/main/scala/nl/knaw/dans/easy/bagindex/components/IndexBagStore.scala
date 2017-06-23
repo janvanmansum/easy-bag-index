@@ -62,8 +62,12 @@ trait IndexBagStore {
       // insert data 'as-is'
       _ <- Try {
         // TODO is there a better way to fail fast?
-        // - Richard: "Yes, there is, because you're working on a Stream. I'll add it to the dans-scala-lib as soon as I have time for it."
-        infos.foreach(relation => addBagInfo(relation.bagId, relation.baseId, relation.created, relation.doi).get)
+        // - ~~Richard: "Yes, there is, because you're working on a Stream. I'll add it to the dans-scala-lib as soon as I have time for it."~~
+        // - Richard: "Streams were not really designed to interact with Try, like we do with Seq/List/etc. This would however work with an Observable!"
+        for (relation <- infos) {
+          logger.info(s"adding relation: $relation")
+          addBagInfo(relation.bagId, relation.baseId, relation.created, relation.doi).get
+        }
       }
       // get all base bagIds
       bases <- getAllBaseBagIds
@@ -99,6 +103,7 @@ trait IndexBagStoreDatabase {
    * @return the bagId of the base of every sequence
    */
   def getAllBaseBagIds(implicit connection: Connection): Try[Seq[BagId]] = {
+    trace(())
     val resultSet = for {
       statement <- managed(connection.createStatement)
       resultSet <- managed(statement.executeQuery("SELECT bagId FROM bag_info WHERE bagId = base;"))
@@ -155,8 +160,11 @@ trait IndexBagStoreDatabase {
    * @return `Success` if all data was deleted; `Failure` otherwise
    */
   def clearIndex()(implicit connection: Connection): Try[Unit] = Try {
+    trace(())
     managed(connection.createStatement)
       .acquireAndGet(_.executeUpdate("DELETE FROM bag_info;"))
+
+    logger.info("index cleared")
   }
 
   /**

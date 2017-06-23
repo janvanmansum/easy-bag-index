@@ -20,7 +20,8 @@ import java.nio.file.Path
 import java.util.UUID
 
 import gov.loc.repository.bagit.{ Bag, BagFactory }
-import nl.knaw.dans.easy.bagindex.{ BaseId, Doi, InvalidIsVersionOfException, NoBagInfoFoundException, NoDoiFoundException, NotABagDirException, dateTimeFormatter }
+import nl.knaw.dans.easy.bagindex._
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters.mapAsScalaMapConverter
@@ -45,19 +46,25 @@ trait BagFacadeComponent {
 }
 
 trait Bagit4FacadeComponent extends BagFacadeComponent {
+  this: DebugEnhancedLogging =>
+
   class Bagit4Facade(bagFactory: BagFactory = new BagFactory) extends BagFacade {
 
     def getIndexRelevantBagInfo(bagDir: Path): Try[(Option[BaseId], Option[DateTime])] = {
+      trace(bagDir)
       for {
         info <- getBagInfo(bagDir)
         baseId <- info.get(IS_VERSION_OF)
           .map(ivo => Try(new URI(ivo)).flatMap(getIsVersionOfFromUri(bagDir)).map(Option(_)))
           .getOrElse(Success(None))
         created = info.get(CREATED).map(DateTime.parse(_, dateTimeFormatter))
+        _ = debug(s"found baseId for $bagDir: $baseId")
+        _ = debug(s"  corresponding CREATED date: ${ created.fold("None")(_.toString(dateTimeFormatter)) }")
       } yield (baseId, created)
     }
 
     def getBagInfo(bagDir: Path): Try[Map[String, String]] = {
+      trace(bagDir)
       for {
         bag <- getBag(bagDir)
         info <- Option(bag.getBagInfoTxt) // this call returns null if there is not bag-info.txt
@@ -81,10 +88,14 @@ trait Bagit4FacadeComponent extends BagFacadeComponent {
     }
 
     def getDoi(datasetXML: Path): Try[Doi] = Try {
-      (XML.loadFile(datasetXML.toFile) \ "dcmiMetadata" \ "identifier")
+      trace(datasetXML)
+      val doi = (XML.loadFile(datasetXML.toFile) \ "dcmiMetadata" \ "identifier")
         .find(hasXsiType(NAMESPACE_IDENTIFIER_TYPE, "DOI"))
         .map(node => Success(node.text))
         .getOrElse(Failure(NoDoiFoundException(datasetXML)))
+
+      debug(s"found doi for $datasetXML: $doi")
+      doi
     }.flatten
 
     private val NAMESPACE_SCHEMA_INSTANCE = new URI("http://www.w3.org/2001/XMLSchema-instance")

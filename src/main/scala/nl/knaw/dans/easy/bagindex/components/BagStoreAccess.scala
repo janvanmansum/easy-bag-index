@@ -20,12 +20,15 @@ import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex.JavaOptionals._
 import nl.knaw.dans.easy.bagindex.{ BagId, BagNotFoundException, _ }
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import resource._
 
 import scala.annotation.tailrec
-import scala.util.{ Failure, Success, Try }
 import scala.collection.JavaConverters._
+import scala.util.{ Failure, Success, Try }
 
 trait BagStoreAccess {
+  this: DebugEnhancedLogging =>
   val baseDirs: Seq[Path]
 
   // TODO replace these methods with a call to the BagStore API to retrieve the path of the bag
@@ -51,7 +54,7 @@ trait BagStoreAccess {
   }
 
   private def findBag(container: Path): Try[Path] = Try {
-    val containedFiles = resource.managed(Files.list(container)).acquireAndGet(_.iterator().asScala.toList)
+    val containedFiles = managed(Files.list(container)).acquireAndGet(_.iterator().asScala.toList)
     assert(containedFiles.size == 1, s"Corrupt BagStore, container with less or more than one file: $container")
     container.resolve(containedFiles.head)
   }
@@ -71,7 +74,7 @@ trait BagStoreAccess {
         Success(currentPath)
       else {
         val res = for {
-          subPath <- resource.managed(Files.list(currentPath)).acquireAndGet(_.findFirst.asScala)
+          subPath <- managed(Files.list(currentPath)).acquireAndGet(_.findFirst.asScala)
           length = subPath.getFileName.toString.length
           (path, restPath2) = restPath.splitAt(length)
           newPath = currentPath.resolve(path)
@@ -107,16 +110,18 @@ trait BagStoreAccess {
    */
   def traverse: Try[Stream[(BagId, Path)]] = {
     def traverseBagStore(baseDir: Path): Try[Stream[(BagId, Path)]] = {
+      trace(baseDir)
 
       // we assume all bags in a bagstore are at equal depth, so following one path is enough!
       def probeForPathDepth: Try[Int] = Try {
-
         @tailrec
         def probe(path: Path, length: Int, levels: Int): Int = {
           length match {
             case l if l > 0 =>
-              val p = resource.managed(Files.list(path)).acquireAndGet(_.findFirst.get)
-              probe(p, length - p.getFileName.toString.length, levels + 1)
+              managed(Files.list(path)).acquireAndGet(_.findFirst.asScala) match {
+                case Some(p) => probe(p, length - p.getFileName.toString.length, levels + 1)
+                case None => levels
+              }
             case 0 => levels
             case _ => throw new Exception("corrupt bagstore")
           }
@@ -141,6 +146,7 @@ trait BagStoreAccess {
 
       for {
         depth <- probeForPathDepth
+        _ = debug(s"found depth $depth for path $baseDir")
         bags <- traverse(depth)
       } yield bags
     }

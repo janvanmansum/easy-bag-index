@@ -18,7 +18,7 @@ package nl.knaw.dans.easy.bagindex.components
 import java.sql.Connection
 import javax.sql.DataSource
 
-import nl.knaw.dans.easy.bagindex._
+import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.dbcp2.BasicDataSource
 import resource._
@@ -83,7 +83,7 @@ trait DatabaseAccess {
         val savepoint = connection.setSavepoint()
 
         actionFunc(connection)
-          .ifSuccess(_ => {
+          .doIfSuccess(_ => {
             connection.commit()
             connection.setAutoCommit(true)
           })

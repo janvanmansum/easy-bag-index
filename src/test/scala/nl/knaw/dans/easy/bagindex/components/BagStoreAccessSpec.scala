@@ -15,9 +15,11 @@
  */
 package nl.knaw.dans.easy.bagindex.components
 
+import java.nio.file.Files
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex.{ BagNotFoundException, BagStoreFixture }
+import org.apache.commons.io.FileUtils
 
 import scala.util.{ Failure, Success }
 
@@ -66,6 +68,16 @@ class BagStoreAccessSpec extends BagStoreFixture {
     inside(traverse) {
       case Success(stream) => stream.toList should (have size 3 and
         contain only((uuid1, path1), (uuid2, path2), (uuid3, path3)))
+    }
+  }
+
+  it should "return an empty collection if the bagstore is empty" in {
+    // create an empty bagstore
+    FileUtils.deleteDirectory(bagStoreBaseDir.toFile)
+    Files.createDirectory(bagStoreBaseDir)
+
+    inside(traverse) {
+      case Success(stream) => stream.toList shouldBe empty
     }
   }
 }

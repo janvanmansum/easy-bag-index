@@ -15,10 +15,11 @@
  */
 package nl.knaw.dans.easy.bagindex.command
 
-import nl.knaw.dans.easy.bagindex.{ BagIndexApp, TryExtensions }
+import nl.knaw.dans.easy.bagindex.BagIndexApp
 
 import scala.language.reflectiveCalls
-import scala.util.{ Failure, Success, Try }
+import scala.util.{ Failure, Success }
+import nl.knaw.dans.lib.error._
 
 object Command extends App with BagIndexApp {
 
@@ -33,20 +34,19 @@ object Command extends App with BagIndexApp {
     opts.subcommand match {
       case Some(cmd @ opts.index) =>
         cmd.bagId.toOption
-          // add a single bag to the bag-index
           .map(addFromBagStore(_).map(_ => s"Added bag with bagId ${ cmd.bagId() }"))
-          // add the whole bag-store to the bag-index
           .getOrElse {
-          if (opts.interaction.deleteBeforeIndexing())
-            indexBagStore().map(_ => "indexed the bag-store successfully")
-          else
-            Success("indexing did not take place")
-        }
-      case _ => Failure(new IllegalArgumentException(s"Unknown command: ${opts.subcommand}"))
+            if (opts.interaction.deleteBeforeIndexing())
+              indexBagStore().map(_ => "bag-store index rebuilt successfully.")
+            else
+              Success("Indexing aborted.")
+          }
+      case _ => Failure(new IllegalArgumentException(s"Unknown command: ${ opts.subcommand }"))
     }
   })
     .map(msg => println(s"OK: $msg"))
-    .onError(e => println(s"FAILED: ${e.getMessage}"))
+    .doIfFailure { case e => logger.error(e.getMessage, e) }
+    .getOrRecover(e => println(s"FAILED: ${ e.getMessage }"))
 
   closeConnectionPool()
 }
