@@ -17,7 +17,6 @@ package nl.knaw.dans.easy.bagindex.service
 
 import nl.knaw.dans.easy.bagindex.{ BagIndexApp, CONTEXT_ATTRIBUTE_KEY_BAGINDEX_APP => appKey }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.eclipse.jetty.ajp.Ajp13SocketConnector
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.scalatra.servlet.ScalatraListener
