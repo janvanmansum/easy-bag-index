@@ -39,14 +39,6 @@ class BagIndexService extends BagIndexApp with DebugEnhancedLogging {
   server.setHandler(context)
   info(s"HTTP port is $port")
 
-  if (properties.containsKey("bag-index.daemon.ajp.port")) {
-    val ajp = new Ajp13SocketConnector
-    val ajpPort = properties.getInt("bag-index.daemon.ajp.port")
-    ajp.setPort(ajpPort)
-    server.addConnector(ajp)
-    info(s"AJP port is $ajpPort")
-  }
-
   def start(): Try[Unit] = {
     info("Starting HTTP service ...")
     server.start()
