@@ -15,7 +15,7 @@
  */
 package nl.knaw.dans.easy.bagindex.service
 
-import nl.knaw.dans.easy.bagindex.{ BagIndexApp, CONTEXT_ATTRIBUTE_KEY_BAGINDEX_APP => appKey }
+import nl.knaw.dans.easy.bagindex.{ BagIndexApp, Configuration, DefaultConfiguration, CONTEXT_ATTRIBUTE_KEY_BAGINDEX_APP => appKey }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.ServletContextHandler
@@ -23,7 +23,8 @@ import org.scalatra.servlet.ScalatraListener
 
 import scala.util.Try
 
-class BagIndexService extends BagIndexApp with DebugEnhancedLogging {
+class BagIndexService extends DebugEnhancedLogging {
+  this: BagIndexApp with Configuration =>
   import logger._
 
   info(s"database connection: $dbUrl")
@@ -57,7 +58,7 @@ class BagIndexService extends BagIndexApp with DebugEnhancedLogging {
 
 object BagIndexService extends DebugEnhancedLogging {
 
-  def apply(): BagIndexService = new BagIndexService
+  def apply(): BagIndexService = new BagIndexService with BagIndexApp with DefaultConfiguration
 
   def main(args: Array[String]): Unit = {
     import logger._

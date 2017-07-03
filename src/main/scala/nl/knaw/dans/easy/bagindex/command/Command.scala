@@ -15,13 +15,13 @@
  */
 package nl.knaw.dans.easy.bagindex.command
 
-import nl.knaw.dans.easy.bagindex.BagIndexApp
+import nl.knaw.dans.easy.bagindex.{ BagIndexApp, DefaultConfiguration }
 
 import scala.language.reflectiveCalls
 import scala.util.{ Failure, Success }
 import nl.knaw.dans.lib.error._
 
-object Command extends App with BagIndexApp {
+object Command extends App with BagIndexApp with DefaultConfiguration {
 
   initConnectionPool()
 

@@ -15,12 +15,10 @@
  */
 package nl.knaw.dans.easy.bagindex
 
-import java.io.File
 import java.nio.file.{ Files, Path, Paths }
 
 import nl.knaw.dans.easy.bagindex.components._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
-import org.apache.commons.configuration.PropertiesConfiguration
 import collection.JavaConverters._
 
 trait BagIndexApp extends AddBagToIndex
@@ -33,22 +31,14 @@ trait BagIndexApp extends AddBagToIndex
   with BagStoreAccess
   with Bagit4FacadeComponent
   with DebugEnhancedLogging {
-  private val home = Paths.get(System.getProperty("app.home"))
-  private val cfg = Seq(
-    Paths.get(s"/etc/opt/dans.knaw.nl/easy-bag-index/"),
-    home.resolve("cfg")).find(Files.exists(_)).getOrElse { throw new IllegalStateException("No configuration directory found")}
+  this: Configuration =>
 
-  val version: String = resource.managed(scala.io.Source.fromFile(home.resolve("bin/version").toFile)).acquireAndGet {
-    _.mkString
-  }
-  val properties = new PropertiesConfiguration(cfg.resolve("application.properties").toFile)
-
-  override val dbDriverClassName: String = properties.getString("bag-index.database.driver-class")
-  override val dbUrl: String = properties.getString("bag-index.database.url")
-  override val dbUsername: Option[String] = Option(properties.getString("bag-index.database.username"))
-  override val dbPassword: Option[String] = Option(properties.getString("bag-index.database.password"))
-  override val baseDirs: Seq[Path] = properties.getList("bag-index.bag-store.base-dirs").asScala.map(dir => Paths.get(dir.asInstanceOf[String]).toAbsolutePath)
-  override val bagFacade = new Bagit4Facade()
+  override lazy val dbDriverClassName: String = properties.getString("bag-index.database.driver-class")
+  override lazy val dbUrl: String = properties.getString("bag-index.database.url")
+  override lazy val dbUsername: Option[String] = Option(properties.getString("bag-index.database.username"))
+  override lazy val dbPassword: Option[String] = Option(properties.getString("bag-index.database.password"))
+  override lazy val baseDirs: Seq[Path] = properties.getList("bag-index.bag-store.base-dirs").asScala.map(dir => Paths.get(dir.asInstanceOf[String]).toAbsolutePath)
+  override lazy val bagFacade = new Bagit4Facade()
 
   def validateSettings(): Unit = {
     def userPasswordSettings = {
