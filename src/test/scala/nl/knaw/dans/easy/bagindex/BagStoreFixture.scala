@@ -38,12 +38,6 @@ trait BagStoreFixture extends TestSupportFixture with BeforeAndAfterEach
     val baseDirs: Seq[Path] = Seq(initBagStores)
   }
 
-  // TODO in some tests we delete the bagstores, so to be sure, we initialize them for every test
-//  override def beforeEach(): Unit = {
-//    super.beforeEach()
-//    initBagStores
-//  }
-
   /**
    * these are the UUID -> DOI mappings from the bag-store in `test/resources/bag-store`
    */
