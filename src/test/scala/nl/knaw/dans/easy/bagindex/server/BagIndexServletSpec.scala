@@ -18,7 +18,8 @@ package nl.knaw.dans.easy.bagindex.server
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex.components.{ DatabaseComponent, IndexBagComponent }
-import nl.knaw.dans.easy.bagindex.{ BagIndexDatabaseFixture, BagInfo, BagStoreFixture, Bagit4Fixture, ConfigurationSupportFixture, CustomMatchers, TestSupportFixture }
+import nl.knaw.dans.easy.bagindex._
+import org.joda.time.DateTime
 import org.scalamock.scalatest.MockFactory
 import org.scalatra.test.scalatest.ScalatraSuite
 
@@ -57,6 +58,7 @@ class BagIndexServletSpec extends TestSupportFixture
     index.addFromBagStore(uuid3) shouldBe a[Success[_]]
 
     val doi = "10.5072/dans-2xg-umq8"
+    val created = DateTime.parse("2017-01-16T14:35:00.888+01:00")
     get("/search", params = Seq("doi" -> doi), headers = Seq("Accept" -> "application/json")) {
       status shouldBe 200
       body shouldBe
@@ -65,7 +67,7 @@ class BagIndexServletSpec extends TestSupportFixture
           |    "bag-info":{
           |      "bag-id":"$uuid1",
           |      "base-id":"$uuid1",
-          |      "created":"2017-01-16T14:35:00.888+01:00",
+          |      "created":"${created.toString(dateTimeFormatter)}",
           |      "doi":"$doi"
           |    }
           |  }]
@@ -82,6 +84,7 @@ class BagIndexServletSpec extends TestSupportFixture
     index.addFromBagStore(uuid3) shouldBe a[Success[_]]
 
     val doi = "10.5072/dans-2xg-umq0"
+    val created = DateTime.parse("2017-01-18T14:35:00.888+01:00")
     get("/search", params = Seq("doi" -> doi), headers = Seq("Accept" -> "text/xml")) {
       status shouldBe 200
       XML.loadString(body) should equalTrimmed {
@@ -89,7 +92,7 @@ class BagIndexServletSpec extends TestSupportFixture
           <bag-info>
             <bag-id>{uuid3}</bag-id>
             <base-id>{uuid1}</base-id>
-            <created>2017-01-18T14:35:00.888+01:00</created>
+            <created>{created.toString(dateTimeFormatter)}</created>
             <doi>{doi}</doi>
           </bag-info>
         </result>
@@ -179,6 +182,8 @@ class BagIndexServletSpec extends TestSupportFixture
     index.addFromBagStore(uuid2) shouldBe a[Success[_]]
     index.addFromBagStore(uuid3) shouldBe a[Success[_]]
 
+    val doi = "10.5072/dans-2xg-umq0"
+    val created = DateTime.parse("2017-01-18T14:35:00.888+01:00")
     get(s"/bags/$uuid3", headers = Seq("Accept" -> "application/xml")) {
       status shouldBe 200
       XML.loadString(body) should equalTrimmed {
@@ -186,8 +191,8 @@ class BagIndexServletSpec extends TestSupportFixture
           <bag-info>
             <bag-id>{uuid3}</bag-id>
             <base-id>{uuid1}</base-id>
-            <created>2017-01-18T14:35:00.888+01:00</created>
-            <doi>10.5072/dans-2xg-umq0</doi>
+            <created>{created.toString(dateTimeFormatter)}</created>
+            <doi>{doi}</doi>
           </bag-info>
         </result>
       }
