@@ -15,11 +15,11 @@
  */
 package nl.knaw.dans.easy.bagindex.server
 
-import java.util.UUID
+import java.util.{ TimeZone, UUID }
 
 import nl.knaw.dans.easy.bagindex.components.{ DatabaseComponent, IndexBagComponent }
 import nl.knaw.dans.easy.bagindex._
-import org.joda.time.DateTime
+import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalamock.scalatest.MockFactory
 import org.scalatra.test.scalatest.ScalatraSuite
 
@@ -40,7 +40,11 @@ class BagIndexServletSpec extends TestSupportFixture
   override val index: IndexBag = new IndexBag {}
   override val bagIndexServlet = new BagIndexServlet {}
 
-  addServlet(bagIndexServlet, "/*")
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    DateTimeZone.setDefault(DateTimeZone.forTimeZone(TimeZone.getTimeZone("Europe/Amsterdam")))
+    addServlet(bagIndexServlet, "/*")
+  }
 
   "get" should "signal that the service is running" in {
     get("/") {
