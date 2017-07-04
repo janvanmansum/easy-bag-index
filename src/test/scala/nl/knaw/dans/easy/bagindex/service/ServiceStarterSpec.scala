@@ -15,18 +15,18 @@
  */
 package nl.knaw.dans.easy.bagindex.service
 
-import nl.knaw.dans.easy.bagindex.{ BagIndexDatabaseFixture, BagStoreFixture, Bagit4Fixture, ConfigurationSupportFixture, ServerTestSupportFixture }
+import nl.knaw.dans.easy.bagindex.{ BagIndexDatabaseFixture, BagStoreFixture, ConfigurationSupportFixture, ServerTestSupportFixture, TestSupportFixture }
 import org.scalatest.OneInstancePerTest
 
-class ServiceStarterSpec extends BagIndexDatabaseFixture with Bagit4Fixture with BagStoreFixture with ServerTestSupportFixture with ConfigurationSupportFixture with OneInstancePerTest {
+class ServiceStarterSpec extends TestSupportFixture with BagIndexDatabaseFixture with BagStoreFixture with ServerTestSupportFixture with ConfigurationSupportFixture with OneInstancePerTest {
 
   private lazy val daemon = new ServiceStarter
-  private lazy val database = daemon.service.database
 
   override def beforeEach(): Unit = {
     super.beforeEach()
 
     configuration.properties.setProperty("bag-index.database.url", s"jdbc:sqlite:${ databaseFile.toString }")
+    configuration.properties.setProperty("bag-index.bag-store.base-dirs", bagStore.baseDirs.mkString(","))
     configuration.properties.save(testDir.resolve("cfg/application.properties").toFile)
     System.setProperty("app.home", testDir.toString)
 
