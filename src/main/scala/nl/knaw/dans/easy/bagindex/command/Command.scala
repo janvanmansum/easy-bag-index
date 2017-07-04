@@ -15,38 +15,35 @@
  */
 package nl.knaw.dans.easy.bagindex.command
 
-import nl.knaw.dans.easy.bagindex.{ BagIndexApp, DefaultConfiguration }
+import nl.knaw.dans.lib.error._
 
 import scala.language.reflectiveCalls
 import scala.util.{ Failure, Success }
-import nl.knaw.dans.lib.error._
 
-object Command extends App with BagIndexApp with DefaultConfiguration {
+object Command extends App with CommandWiring {
 
-  initConnectionPool()
+  val commandLine: CommandLineOptions = new CommandLineOptions(args)
+  commandLine.verify()
 
-  val opts = CommandLineOptions(args, properties)
-  opts.verify()
+  databaseAccess.initConnectionPool()
 
-  // TODO continue with the rest (command parsing etc.)
-
-  doTransaction(implicit connection => {
-    opts.subcommand match {
-      case Some(cmd @ opts.index) =>
+  databaseAccess.doTransaction(implicit connection => {
+    commandLine.subcommand match {
+      case Some(cmd @ commandLine.index) =>
         cmd.bagId.toOption
-          .map(addFromBagStore(_).map(_ => s"Added bag with bagId ${ cmd.bagId() }"))
+          .map(index.addFromBagStore(_).map(_ => s"Added bag with bagId ${ cmd.bagId() }"))
           .getOrElse {
-            if (opts.interaction.deleteBeforeIndexing())
-              indexBagStore().map(_ => "bag-store index rebuilt successfully.")
+            if (commandLine.interaction.deleteBeforeIndexing())
+              indexFull.indexBagStore().map(_ => "bag-store index rebuilt successfully.")
             else
               Success("Indexing aborted.")
           }
-      case _ => Failure(new IllegalArgumentException(s"Unknown command: ${ opts.subcommand }"))
+      case _ => Failure(new IllegalArgumentException(s"Unknown command: ${ commandLine.subcommand }"))
     }
   })
     .map(msg => println(s"OK: $msg"))
     .doIfFailure { case e => logger.error(e.getMessage, e) }
     .getOrRecover(e => println(s"FAILED: ${ e.getMessage }"))
 
-  closeConnectionPool()
+  databaseAccess.closeConnectionPool()
 }

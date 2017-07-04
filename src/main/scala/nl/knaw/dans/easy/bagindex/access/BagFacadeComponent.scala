@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagindex.components
+package nl.knaw.dans.easy.bagindex.access
 
 import java.net.URI
 import java.nio.file.Path

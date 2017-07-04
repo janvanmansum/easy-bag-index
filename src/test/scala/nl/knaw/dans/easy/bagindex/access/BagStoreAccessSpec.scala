@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagindex.components
+package nl.knaw.dans.easy.bagindex.access
 
 import java.nio.file.Files
 import java.util.UUID
@@ -24,35 +24,35 @@ import org.apache.commons.io.FileUtils
 import scala.util.{ Failure, Success }
 
 class BagStoreAccessSpec extends BagStoreFixture {
-  private val bagStoreBaseDir = baseDirs.headOption.getOrElse(throw new NoSuchElementException("no bagstore base directory found"))
+  private val bagStoreBaseDir = bagStore.baseDirs.headOption.getOrElse(throw new NoSuchElementException("no bagstore base directory found"))
 
   "toLocation" should "resolve the path to the actual bag identified with a bagId" in {
     val bagId = UUID.fromString("00000000-0000-0000-0000-000000000001")
-    inside(toLocation(bagId)) {
+    inside(bagStore.toLocation(bagId)) {
       case Success(path) => path shouldBe bagStoreBaseDir.resolve("00/000000000000000000000000000001/bag-revision-1")
     }
   }
 
   it should "fail with a BagNotFoundInBagStoreException when the bag is not in the bagstore" in {
     val bagId = UUID.randomUUID()
-    toLocation(bagId) should matchPattern { case Failure(BagNotFoundException(`bagId`)) => }
+    bagStore.toLocation(bagId) should matchPattern { case Failure(BagNotFoundException(`bagId`)) => }
   }
 
   "toContainer" should "resolve the path to the bag's container identified with a bagId" in {
     val bagId = UUID.fromString("00000000-0000-0000-0000-000000000001")
     val container = bagStoreBaseDir.resolve("00/000000000000000000000000000001")
 
-    toContainer(bagId, bagStoreBaseDir) should matchPattern { case Success(`container`) => }
+    bagStore.toContainer(bagId, bagStoreBaseDir) should matchPattern { case Success(`container`) => }
   }
 
   it should "return a None if the bag is not in the bagstore" in {
     val bagId = UUID.randomUUID()
-    toContainer(bagId, bagStoreBaseDir) should matchPattern { case Failure(BagNotFoundException(`bagId`)) => }
+    bagStore.toContainer(bagId, bagStoreBaseDir) should matchPattern { case Failure(BagNotFoundException(`bagId`)) => }
   }
 
   "toDatasetXml" should "resolve the path to the metadata/dataset.xml file of the bag identifier with a bagId" in {
     val bagId = UUID.fromString("00000000-0000-0000-0000-000000000001")
-    toDatasetXml(bagStoreBaseDir.resolve("00/000000000000000000000000000001/bag-revision-1/"), bagId) shouldBe
+    bagStore.toDatasetXml(bagStoreBaseDir.resolve("00/000000000000000000000000000001/bag-revision-1/"), bagId) shouldBe
       bagStoreBaseDir.resolve("00/000000000000000000000000000001/bag-revision-1/metadata/dataset.xml")
   }
 
@@ -65,7 +65,7 @@ class BagStoreAccessSpec extends BagStoreFixture {
     val path2 = bagStoreBaseDir.resolve("00/000000000000000000000000000002/bag-revision-2")
     val path3 = bagStoreBaseDir.resolve("00/000000000000000000000000000003/bag-revision-3")
 
-    inside(traverse) {
+    inside(bagStore.traverse) {
       case Success(stream) => stream.toList should (have size 3 and
         contain only((uuid1, path1), (uuid2, path2), (uuid3, path3)))
     }
@@ -76,7 +76,7 @@ class BagStoreAccessSpec extends BagStoreFixture {
     FileUtils.deleteDirectory(bagStoreBaseDir.toFile)
     Files.createDirectory(bagStoreBaseDir)
 
-    inside(traverse) {
+    inside(bagStore.traverse) {
       case Success(stream) => stream.toList shouldBe empty
     }
   }

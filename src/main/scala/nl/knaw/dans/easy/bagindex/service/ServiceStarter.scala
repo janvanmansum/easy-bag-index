@@ -15,32 +15,52 @@
  */
 package nl.knaw.dans.easy.bagindex.service
 
+import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.daemon.{ Daemon, DaemonContext }
 
-class ServiceStarter extends Daemon with DebugEnhancedLogging {
-  var bagIndexService: BagIndexService = _
+import scala.util.control.NonFatal
 
-  def init(context: DaemonContext): Unit = {
-    logger.info("Initializing service...")
-    bagIndexService = BagIndexService()
+class ServiceStarter extends Daemon with DebugEnhancedLogging {
+
+  var service: ServiceWiring = _
+
+  override def init(context: DaemonContext): Unit = {
+    logger.info("Initializing service ...")
+
+    service = new ServiceWiring {}
+
     logger.info("Service initialized.")
   }
 
-  def start(): Unit = {
-    logger.info("Starting service...")
-    bagIndexService.start()
-      .map(_ => logger.info("Service started."))
-      .recover { case t => logger.error("Service failed to start", t) }
+  override def start(): Unit = {
+    logger.info("Starting service ...")
+    service.databaseAccess.initConnectionPool()
+      .flatMap(_ => service.server.start())
+      .doIfSuccess(_ => logger.info("Service started."))
+      .doIfFailure {
+        case NonFatal(e) => logger.info(s"Service startup failed: ${ e.getMessage }", e)
+      }
+      .getOrRecover(throw _)
   }
 
-  def stop(): Unit = {
-    logger.info("Stopping service...")
-    bagIndexService.stop()
+  override def stop(): Unit = {
+    logger.info("Stopping service ...")
+    service.server.stop()
+      .flatMap(_ => service.databaseAccess.closeConnectionPool())
+      .doIfSuccess(_ => logger.info("Cleaning up ..."))
+      .doIfFailure {
+        case NonFatal(e) => logger.error(s"Service stop failed: ${ e.getMessage }", e)
+      }
+      .getOrRecover(throw _)
   }
 
-  def destroy(): Unit = {
-    bagIndexService.destroy
-    logger.info("Service stopped.")
+  override def destroy(): Unit = {
+    service.server.destroy()
+      .doIfSuccess(_ => logger.info("Service stopped."))
+      .doIfFailure {
+        case e => logger.error(s"Service destroy failed: ${ e.getMessage }", e)
+      }
+      .getOrRecover(throw _)
   }
 }

@@ -18,55 +18,54 @@ package nl.knaw.dans.easy.bagindex
 import java.nio.file.{ Files, Path }
 import java.sql.Connection
 
-import nl.knaw.dans.easy.bagindex.components.{ Database, DatabaseAccess }
+import nl.knaw.dans.easy.bagindex.access.DatabaseAccessComponent
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalatest.BeforeAndAfterEach
-
-import scala.io.Source
 import resource._
 
+import scala.io.Source
 import scala.util.Success
 
-trait BagIndexDatabaseFixture extends TestSupportFixture
-  with BeforeAndAfterEach
-  with DatabaseAccess
-  with Database
+trait BagIndexDatabaseFixture extends TestSupportFixture with BeforeAndAfterEach
+  with DatabaseAccessComponent
   with DebugEnhancedLogging {
 
   val databaseFile: Path = testDir.resolve("database.db")
 
-  override val dbDriverClassName: String = "org.sqlite.JDBC"
-  override val dbUrl: String = s"jdbc:sqlite:${databaseFile.toString}"
-  override val dbUsername = Option.empty[String]
-  override val dbPassword = Option.empty[String]
-
   implicit var connection: Connection = _
 
-  override protected def createConnectionPool: ConnectionPool = {
-    val pool = super.createConnectionPool
+  override val databaseAccess = new DatabaseAccess {
+    override val dbDriverClassName: String = "org.sqlite.JDBC"
+    override val dbUrl: String = s"jdbc:sqlite:${ databaseFile.toString }"
+    override val dbUsername = Option.empty[String]
+    override val dbPassword = Option.empty[String]
 
-    managed(pool.getConnection)
-      .flatMap(connection => managed(connection.createStatement))
-      .and(managed(Source.fromFile(getClass.getClassLoader.getResource("database/bag-index.sql").toURI)).map(_.mkString))
-      .map { case (statement, query) =>
-        statement.executeUpdate(query)
-      }
-      .tried shouldBe a[Success[_]]
+    override protected def createConnectionPool: ConnectionPool = {
+      val pool = super.createConnectionPool
 
-    connection = pool.getConnection
+      managed(pool.getConnection)
+        .flatMap(connection => managed(connection.createStatement))
+        .and(managed(Source.fromFile(getClass.getClassLoader.getResource("database/bag-index.sql").toURI)).map(_.mkString))
+        .map { case (statement, query) =>
+          statement.executeUpdate(query)
+        }
+        .tried shouldBe a[Success[_]]
 
-    pool
+      connection = pool.getConnection
+
+      pool
+    }
   }
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     Files.deleteIfExists(databaseFile)
-    initConnectionPool()
+    databaseAccess.initConnectionPool()
   }
 
   override def afterEach(): Unit = {
     connection.close()
-    closeConnectionPool()
+    databaseAccess.closeConnectionPool()
     super.afterEach()
   }
 }

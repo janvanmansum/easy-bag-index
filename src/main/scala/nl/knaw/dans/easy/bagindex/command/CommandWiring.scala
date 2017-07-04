@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import javax.servlet.ServletContext
+package nl.knaw.dans.easy.bagindex.command
 
-import nl.knaw.dans.easy.bagindex.BagIndexApp
-import nl.knaw.dans.easy.bagindex.service.BagIndexServlet
-import org.scalatra.LifeCycle
+import java.nio.file.Paths
 
-class ScalatraBootstrap extends LifeCycle {
-  override def init(context: ServletContext) {
-    import nl.knaw.dans.easy.bagindex.{CONTEXT_ATTRIBUTE_KEY_BAGINDEX_APP => appKey}
-    context.getAttribute(appKey) match {
-      case app: BagIndexApp => context.mount(BagIndexServlet(app), "/")
-      case _ => throw new IllegalStateException("Service not configured: no BagIndex application found")
-    }
-  }
+import nl.knaw.dans.easy.bagindex.ConfigurationComponent
+import nl.knaw.dans.easy.bagindex.access.AccessWiring
+import nl.knaw.dans.easy.bagindex.components.IndexWiring
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+
+trait CommandWiring extends AccessWiring with IndexWiring with CommandLineOptionsComponent with ConfigurationComponent with DebugEnhancedLogging {
+  val configuration: Configuration = Configuration(Paths.get(System.getProperty("app.home")))
 }

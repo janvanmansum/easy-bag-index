@@ -18,12 +18,15 @@ package nl.knaw.dans.easy.bagindex.components
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex.{ BagId, BagIndexDatabaseFixture, BagInfo }
-import nl.knaw.dans.lib.error.TraversableTryExtensions
+import nl.knaw.dans.lib.error._
 import org.joda.time.DateTime
 
 import scala.util.Success
 
-class IndexBagStoreDatabaseSpec extends BagIndexDatabaseFixture with IndexBagStoreDatabase with Database {
+class IndexBagStoreDatabaseSpec extends BagIndexDatabaseFixture with IndexBagStoreDatabaseComponent with DatabaseComponent {
+
+  override val database: Database = new Database {}
+  override val indexDatabase: IndexBagStoreDatabase = new IndexBagStoreDatabase {}
 
   def setupBagStoreIndexTestCase(): Map[Char, (BagId, DateTime)] = {
     // sequence with first bag F
@@ -75,7 +78,7 @@ class IndexBagStoreDatabaseSpec extends BagIndexDatabaseFixture with IndexBagSto
       BagInfo(bagIdY, bagIdZ, dateY, doiY) ::
       BagInfo(bagIdZ, bagIdZ, dateZ, doiZ) :: Nil
 
-    relations.map(info => addBagInfo(info.bagId, info.baseId, info.created, info.doi)).collectResults shouldBe a[Success[_]]
+    relations.map(info => database.addBagInfo(info.bagId, info.baseId, info.created, info.doi)).collectResults shouldBe a[Success[_]]
 
     Map(
       'a' -> (bagIdA, dateA),
@@ -94,7 +97,7 @@ class IndexBagStoreDatabaseSpec extends BagIndexDatabaseFixture with IndexBagSto
   "getAllBaseBagIds" should "return a sequence of bagIds refering to bags that are the base of their sequence" in {
     val bags = setupBagStoreIndexTestCase()
 
-    inside(getAllBaseBagIds) {
+    inside(indexDatabase.getAllBaseBagIds) {
       case Success(bases) => bases should contain allOf(bags('f')._1, bags('z')._1)
     }
   }
@@ -105,35 +108,35 @@ class IndexBagStoreDatabaseSpec extends BagIndexDatabaseFixture with IndexBagSto
     val fBag1 :: fBag2 :: fTail = fBags.values.toList
     val zBag1 :: zBag2 :: zTail = zBags.values.toList
 
-    inside(getAllBagsInSequence(bags('f')._1)) {
+    inside(indexDatabase.getAllBagsInSequence(bags('f')._1)) {
       case Success(sequence) => sequence should (have size 7 and contain allOf(fBag1, fBag2, fTail:_*))
     }
-    inside(getAllBagsInSequence(bags('z')._1)) {
+    inside(indexDatabase.getAllBagsInSequence(bags('z')._1)) {
       case Success(sequence) => sequence should (have size 3 and contain allOf(zBag1, zBag2, zTail:_*))
     }
   }
 
   "clearIndex" should "delete all data from the bag-index" in {
-    inside(getAllBagInfos) {
+    inside(database.getAllBagInfos) {
       case Success(data) => data should not be empty
     }
 
-    clearIndex() shouldBe a[Success[_]]
+    indexDatabase.clearIndex() shouldBe a[Success[_]]
 
-    inside(getAllBagInfos) {
+    inside(database.getAllBagInfos) {
       case Success(data) => data shouldBe empty
     }
   }
 
   it should "succeed if clearing an empty bag-index" in {
-    inside(getAllBagInfos) {
+    inside(database.getAllBagInfos) {
       case Success(data) => data should not be empty
     }
 
-    clearIndex() shouldBe a[Success[_]]
-    clearIndex() shouldBe a[Success[_]]
+    indexDatabase.clearIndex() shouldBe a[Success[_]]
+    indexDatabase.clearIndex() shouldBe a[Success[_]]
 
-    inside(getAllBagInfos) {
+    inside(database.getAllBagInfos) {
       case Success(data) => data shouldBe empty
     }
   }
@@ -141,10 +144,10 @@ class IndexBagStoreDatabaseSpec extends BagIndexDatabaseFixture with IndexBagSto
   "updateBagsInSequence" should "update all bags in the sequence to have the newBaseId as their base in the database" in {
     val bags = setupBagStoreIndexTestCase()
 
-    val fBags = getAllBagsInSequence(bags('f')._1).get.map(_._1)
-    updateBagsInSequence(bags('g')._1, fBags) shouldBe a[Success[_]]
+    val fBags = indexDatabase.getAllBagsInSequence(bags('f')._1).get.map(_._1)
+    indexDatabase.updateBagsInSequence(bags('g')._1, fBags) shouldBe a[Success[_]]
 
-    inside(getAllBagInfos) {
+    inside(database.getAllBagInfos) {
       case Success(rels) => rels.map(rel => (rel.bagId, rel.baseId)) should contain allOf(
         (bags('a')._1, bags('g')._1),
         (bags('b')._1, bags('g')._1),

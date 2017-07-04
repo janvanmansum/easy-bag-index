@@ -13,24 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagindex.service
+package nl.knaw.dans.easy.bagindex.server
 
+import nl.knaw.dans.easy.bagindex.ConfigurationComponent
+import nl.knaw.dans.easy.bagindex.access.AccessWiring
+import nl.knaw.dans.easy.bagindex.components.IndexWiring
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
-object BagIndexService extends DebugEnhancedLogging {
+trait ServerWiring extends BagIndexServletComponent with ServletMounterComponent with BagIndexServerComponent {
+  this: IndexWiring with AccessWiring with ConfigurationComponent with DebugEnhancedLogging =>
 
-  def main(args: Array[String]): Unit = {
-    logger.info("Starting BagIndex Service")
-
-    val service = new ServiceStarter
-
-    Runtime.getRuntime.addShutdownHook(new Thread("service-shutdown") {
-      override def run(): Unit = {
-        service.stop()
-        service.destroy()
-      }
-    })
-    service.init(null)
-    service.start()
-  }
+  val bagIndexServlet: BagIndexServlet = new BagIndexServlet {}
+  val mounter: ServletMounter = new ServletMounter {}
+  val server: BagIndexServer = new BagIndexServer(configuration.properties.getInt("bag-index.daemon.http.port"))
 }

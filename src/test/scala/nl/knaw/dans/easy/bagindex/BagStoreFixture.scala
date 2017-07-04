@@ -18,12 +18,13 @@ package nl.knaw.dans.easy.bagindex
 import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.components.BagStoreAccess
+import nl.knaw.dans.easy.bagindex.access.BagStoreAccessComponent
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
 import org.scalatest.BeforeAndAfterEach
 
-trait BagStoreFixture extends TestSupportFixture with BeforeAndAfterEach with BagStoreAccess with DebugEnhancedLogging {
+trait BagStoreFixture extends TestSupportFixture with BeforeAndAfterEach
+  with BagStoreAccessComponent with DebugEnhancedLogging {
 
   def initBagStores: Path = {
     val bagStoreBaseDir = testDir.resolve("bag-store")
@@ -33,13 +34,15 @@ trait BagStoreFixture extends TestSupportFixture with BeforeAndAfterEach with Ba
     bagStoreBaseDir
   }
 
-  override val baseDirs: Seq[Path] = Seq(initBagStores)
-
-  // in some tests we delete the bagstores, so to be sure, we initialize them for every test
-  override def beforeEach(): Unit = {
-    super.beforeEach()
-    initBagStores
+  override val bagStore = new BagStoreAccess {
+    val baseDirs: Seq[Path] = Seq(initBagStores)
   }
+
+  // TODO in some tests we delete the bagstores, so to be sure, we initialize them for every test
+//  override def beforeEach(): Unit = {
+//    super.beforeEach()
+//    initBagStores
+//  }
 
   /**
    * these are the UUID -> DOI mappings from the bag-store in `test/resources/bag-store`

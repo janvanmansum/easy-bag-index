@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagindex.service
+package nl.knaw.dans.easy.bagindex.server
 
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import javax.servlet.ServletContext
 
-object BagIndexService extends DebugEnhancedLogging {
+import org.scalatra.LifeCycle
 
-  def main(args: Array[String]): Unit = {
-    logger.info("Starting BagIndex Service")
+trait ServletMounterComponent {
+  this: BagIndexServletComponent =>
 
-    val service = new ServiceStarter
+  val mounter: ServletMounter
 
-    Runtime.getRuntime.addShutdownHook(new Thread("service-shutdown") {
-      override def run(): Unit = {
-        service.stop()
-        service.destroy()
-      }
-    })
-    service.init(null)
-    service.start()
+  trait ServletMounter extends LifeCycle {
+    override def init(context: ServletContext): Unit = {
+      context.mount(bagIndexServlet, "/")
+    }
   }
 }

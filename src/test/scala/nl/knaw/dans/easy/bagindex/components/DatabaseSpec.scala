@@ -17,13 +17,15 @@ package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagIdNotFoundException, BagIndexDatabaseFixture, BagInfo }
+import nl.knaw.dans.easy.bagindex.{ BagAlreadyInIndexException, BagIdNotFoundException, BagIndexDatabaseFixture, BagInfo }
 import nl.knaw.dans.lib.error.TraversableTryExtensions
 import org.joda.time.DateTime
 
 import scala.util.{ Failure, Success }
 
-class DatabaseSpec extends BagIndexDatabaseFixture with Database {
+class DatabaseSpec extends BagIndexDatabaseFixture with DatabaseComponent {
+
+  override val database = new Database {}
 
   "getBaseBagId" should "return the base of a specific bagId" in {
     val bagIds@(baseId :: _) = List.fill(3)(UUID.randomUUID())
@@ -35,18 +37,18 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     val dois = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
 
     (bagIds, times, dois).zipped.toList
-      .map { case (bagId, time, doi) => addBagInfo(bagId, baseId, time, doi) }
+      .map { case (bagId, time, doi) => database.addBagInfo(bagId, baseId, time, doi) }
       .collectResults shouldBe a[Success[_]]
 
     for (bagId <- bagIds) {
-      getBaseBagId(bagId) should matchPattern { case Success(`baseId`) => }
+      database.getBaseBagId(bagId) should matchPattern { case Success(`baseId`) => }
     }
   }
 
   it should "return a Failure with a BagIdNotFoundException inside if the bagId is not present in the database" in {
     // Note: the database is empty at this point!
     val someBagId = UUID.randomUUID()
-    getBaseBagId(someBagId) should matchPattern { case Failure(BagIdNotFoundException(`someBagId`)) => }
+    database.getBaseBagId(someBagId) should matchPattern { case Failure(BagIdNotFoundException(`someBagId`)) => }
   }
 
   "getAllBagsWithBase" should "return a sequence with only the baseId when there are no child bags declared" in {
@@ -54,9 +56,9 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     val time = DateTime.now()
     val doi = "10.5072/dans-x6f-kf6x"
 
-    addBagInfo(bagId, bagId, time, doi) shouldBe a[Success[_]]
+    database.addBagInfo(bagId, bagId, time, doi) shouldBe a[Success[_]]
 
-    inside(getAllBagsWithBase(bagId)) {
+    inside(database.getAllBagsWithBase(bagId)) {
       case Success(ids) => ids should (have size 1 and contain only bagId)
     }
   }
@@ -83,13 +85,13 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     List(
       ((bagIds1, times1, dois1).zipped.toList, baseId1),
       ((bagIds2, times2, dois2).zipped.toList, baseId2))
-      .flatMap { case (xs, base) => xs.map { case (bagId, time, doi) => addBagInfo(bagId, base, time, doi) }}
+      .flatMap { case (xs, base) => xs.map { case (bagId, time, doi) => database.addBagInfo(bagId, base, time, doi) }}
       .collectResults shouldBe a[Success[_]]
 
-    inside(getAllBagsWithBase(baseId1)) {
+    inside(database.getAllBagsWithBase(baseId1)) {
       case Success(ids) => ids should (have size 3 and contain theSameElementsAs bagIds1)
     }
-    inside(getAllBagsWithBase(baseId2)) {
+    inside(database.getAllBagsWithBase(baseId2)) {
       case Success(ids) => ids should (have size 5 and contain theSameElementsAs bagIds2)
     }
   }
@@ -104,17 +106,17 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     val dois = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
 
     (bagIds, times, dois).zipped.toList
-      .map { case (bagId, time, doi) => addBagInfo(bagId, baseId, time, doi) }
+      .map { case (bagId, time, doi) => database.addBagInfo(bagId, baseId, time, doi) }
       .collectResults shouldBe a[Success[_]]
 
     for ((bagId, created, doi) <- (bagIds, times, dois).zipped.toList)
-      getBagInfo(bagId) should matchPattern { case Success(BagInfo(`bagId`, `baseId`, `created`, `doi`)) => }
+      database.getBagInfo(bagId) should matchPattern { case Success(BagInfo(`bagId`, `baseId`, `created`, `doi`)) => }
   }
 
   it should "return a BagIdNotFoundException when the given bagId does not exist in the database" in {
     // Note: the database is empty at this point!
     val someBagId = UUID.randomUUID()
-    getBagInfo(someBagId) should matchPattern { case Failure(BagIdNotFoundException(`someBagId`)) => }
+    database.getBagInfo(someBagId) should matchPattern { case Failure(BagIdNotFoundException(`someBagId`)) => }
   }
 
   "getBagsWithDoi" should "return all bags with a certain DOI" in {
@@ -126,10 +128,10 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     val dois@doi1 :: _ = List.fill(2)("10.5072/dans-x6f-kf6x")
 
     (bagIds, times, dois).zipped.toList
-      .map { case (bagId, time, doi) => addBagInfo(bagId, bagId, time, doi) }
+      .map { case (bagId, time, doi) => database.addBagInfo(bagId, bagId, time, doi) }
       .collectResults shouldBe a[Success[_]]
 
-    inside(getBagsWithDoi(doi1)) {
+    inside(database.getBagsWithDoi(doi1)) {
       case Success(bags) => bags should (have size 2 and contain only (BagInfo(bagId1, bagId1, time1, doi1), BagInfo(bagId2, bagId2, time2, doi1)))
     }
   }
@@ -139,15 +141,15 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     val time = DateTime.parse("1992-07-30T16:00:00")
     val doi = "10.5072/dans-x6f-kf6x"
 
-    addBagInfo(bagId, bagId, time, doi) shouldBe a[Success[_]]
+    database.addBagInfo(bagId, bagId, time, doi) shouldBe a[Success[_]]
 
-    inside(getBagsWithDoi(doi)) {
+    inside(database.getBagsWithDoi(doi)) {
       case Success(bags) => bags should (have size 1 and contain only BagInfo(bagId, bagId, time, doi))
     }
   }
 
   it should "return an empty sequence when the DOI isn't found" in {
-    inside(getBagsWithDoi("10.5072/dans-x6f-kf6x")) {
+    inside(database.getBagsWithDoi("10.5072/dans-x6f-kf6x")) {
       case Success(bags) => bags shouldBe empty
     }
   }
@@ -162,12 +164,12 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     val dois = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
 
     (bagIds, times, dois).zipped.toList
-      .map { case (bagId, time, doi) => addBagInfo(bagId, baseId, time, doi) }
+      .map { case (bagId, time, doi) => database.addBagInfo(bagId, baseId, time, doi) }
       .collectResults shouldBe a[Success[_]]
 
     val rel1 :: rel2 :: rels = (bagIds, times, dois).zipped.toList.map { case (bagId, time, doi) => BagInfo(bagId, baseId, time, doi) }
 
-    inside(getAllBagInfos) {
+    inside(database.getAllBagInfos) {
       case Success(relations) => relations should contain allOf(rel1, rel2, rels: _*)
     }
   }
@@ -178,15 +180,13 @@ class DatabaseSpec extends BagIndexDatabaseFixture with Database {
     val time = DateTime.now()
     val doi = "10.5072/dans-x6f-kf66"
 
-    val result1 = addBagInfo(bagId, baseId, time, doi)
-    val result2 = addBagInfo(bagId, baseId, time, doi)
+    val result1 = database.addBagInfo(bagId, baseId, time, doi)
+    val result2 = database.addBagInfo(bagId, baseId, time, doi)
 
     result1 shouldBe a[Success[_]]
-    inside(result2) {
-      case Failure(e) => e.getMessage should include ("UNIQUE constraint failed")
-    }
+    result2 should matchPattern { case Failure(BagAlreadyInIndexException(`bagId`)) => }
 
-    inside(getAllBagInfos) {
+    inside(database.getAllBagInfos) {
       case Success(relations) => relations should contain (BagInfo(bagId, baseId, time, doi))
     }
   }

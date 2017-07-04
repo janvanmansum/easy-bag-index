@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagindex.components
+package nl.knaw.dans.easy.bagindex.access
 
 import nl.knaw.dans.easy.bagindex.{ BagStoreFixture, Bagit4Fixture, NoDoiFoundException }
 
 import scala.util.{ Failure, Success }
-import scala.xml.{ Elem, Node, NodeSeq, XML }
 import scala.xml.transform.{ RewriteRule, RuleTransformer }
+import scala.xml.{ Elem, Node, NodeSeq, XML }
 
-class BagFacadeComponentSpec extends BagStoreFixture with Bagit4Fixture {
+class BagFacadeSpec extends BagStoreFixture with Bagit4Fixture {
 
-  private val bagStoreBaseDir = baseDirs.headOption.getOrElse(throw new NoSuchElementException("no bagstore base directory found"))
+  private val bagStoreBaseDir = bagStore.baseDirs.headOption.getOrElse(throw new NoSuchElementException("no bagstore base directory found"))
 
   "getDoi" should "find the DOI identifier in a metadata/dataset.xml file" in {
     val doi = doiMap("00000000-0000-0000-0000-000000000001")

@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagindex.service
+package nl.knaw.dans.easy.bagindex.components
 
+import nl.knaw.dans.easy.bagindex.access.{ BagFacadeComponent, BagStoreAccessComponent }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
-object BagIndexService extends DebugEnhancedLogging {
+trait IndexWiring extends IndexBagComponent with IndexBagStoreComponent with DatabaseComponent with IndexBagStoreDatabaseComponent {
+  this: BagStoreAccessComponent with BagFacadeComponent with DebugEnhancedLogging =>
 
-  def main(args: Array[String]): Unit = {
-    logger.info("Starting BagIndex Service")
-
-    val service = new ServiceStarter
-
-    Runtime.getRuntime.addShutdownHook(new Thread("service-shutdown") {
-      override def run(): Unit = {
-        service.stop()
-        service.destroy()
-      }
-    })
-    service.init(null)
-    service.start()
-  }
+  override val database: Database = new Database {}
+  override val index: IndexBag = new IndexBag {}
+  override val indexFull: IndexBagStore = new IndexBagStore {}
+  override val indexDatabase: IndexBagStoreDatabase = new IndexBagStoreDatabase {}
 }

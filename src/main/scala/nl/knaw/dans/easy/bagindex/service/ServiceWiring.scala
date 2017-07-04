@@ -15,22 +15,14 @@
  */
 package nl.knaw.dans.easy.bagindex.service
 
+import java.nio.file.Paths
+
+import nl.knaw.dans.easy.bagindex.ConfigurationComponent
+import nl.knaw.dans.easy.bagindex.access.AccessWiring
+import nl.knaw.dans.easy.bagindex.components.IndexWiring
+import nl.knaw.dans.easy.bagindex.server.ServerWiring
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
-object BagIndexService extends DebugEnhancedLogging {
-
-  def main(args: Array[String]): Unit = {
-    logger.info("Starting BagIndex Service")
-
-    val service = new ServiceStarter
-
-    Runtime.getRuntime.addShutdownHook(new Thread("service-shutdown") {
-      override def run(): Unit = {
-        service.stop()
-        service.destroy()
-      }
-    })
-    service.init(null)
-    service.start()
-  }
+trait ServiceWiring extends ServerWiring with AccessWiring with IndexWiring with ConfigurationComponent with DebugEnhancedLogging {
+  lazy val configuration: Configuration = Configuration(Paths.get(System.getProperty("app.home")))
 }

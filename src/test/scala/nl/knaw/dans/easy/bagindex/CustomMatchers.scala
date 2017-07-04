@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagindex.service
+package nl.knaw.dans.easy.bagindex
 
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.scalatest.matchers.{ MatchResult, Matcher }
 
-object BagIndexService extends DebugEnhancedLogging {
+import scala.xml.{ Node, Utility }
 
-  def main(args: Array[String]): Unit = {
-    logger.info("Starting BagIndex Service")
+trait CustomMatchers {
 
-    val service = new ServiceStarter
-
-    Runtime.getRuntime.addShutdownHook(new Thread("service-shutdown") {
-      override def run(): Unit = {
-        service.stop()
-        service.destroy()
-      }
-    })
-    service.init(null)
-    service.start()
+  // copied from easy-split-multi-deposit
+  class EqualTrimmedMatcher(right: Seq[Node]) extends Matcher[Seq[Node]] {
+    override def apply(left: Seq[Node]): MatchResult = {
+      MatchResult(
+        left.zip(right).forall { case (l, r) => Utility.trim(l).toString() == Utility.trim(r).toString() },
+        s"$left did not equal $right",
+        s"$left did equal $right"
+      )
+    }
   }
+  def equalTrimmed(right: Seq[Node]) = new EqualTrimmedMatcher(right)
 }
