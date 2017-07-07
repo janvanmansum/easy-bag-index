@@ -15,6 +15,8 @@
  */
 package nl.knaw.dans.easy.bagindex.server
 
+import javax.servlet.ServletContext
+
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.ServletContextHandler
@@ -24,17 +26,21 @@ import org.scalatra.servlet.ScalatraListener
 import scala.util.Try
 
 trait BagIndexServerComponent {
-  this: ServletMounterComponent with DebugEnhancedLogging =>
+  this: BagIndexServletComponent with DebugEnhancedLogging =>
 
   val server: BagIndexServer
 
   class BagIndexServer(val serverPort: Int) {
 
-    private lazy val server = new Server(serverPort) {
+    private val server = new Server(serverPort) {
       this.setHandler(new ServletContextHandler(ServletContextHandler.NO_SESSIONS) {
         this.addEventListener(new ScalatraListener {
           override def probeForCycleClass(classLoader: ClassLoader): (String, LifeCycle) = {
-            (mounter.getClass.getSimpleName, mounter)
+            ("bagindex-lifecycle", new LifeCycle {
+              override def init(context: ServletContext): Unit = {
+                context.mount(bagIndexServlet, "/")
+              }
+            })
           }
         })
       })

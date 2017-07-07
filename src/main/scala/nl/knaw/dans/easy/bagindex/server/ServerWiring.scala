@@ -20,10 +20,9 @@ import nl.knaw.dans.easy.bagindex.access.AccessWiring
 import nl.knaw.dans.easy.bagindex.components.IndexWiring
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
-trait ServerWiring extends BagIndexServletComponent with ServletMounterComponent with BagIndexServerComponent {
+trait ServerWiring extends BagIndexServletComponent with BagIndexServerComponent {
   this: IndexWiring with AccessWiring with ConfigurationComponent with DebugEnhancedLogging =>
 
   val bagIndexServlet: BagIndexServlet = new BagIndexServlet {}
-  val mounter: ServletMounter = new ServletMounter {}
   val server: BagIndexServer = new BagIndexServer(configuration.properties.getInt("bag-index.daemon.http.port"))
 }
