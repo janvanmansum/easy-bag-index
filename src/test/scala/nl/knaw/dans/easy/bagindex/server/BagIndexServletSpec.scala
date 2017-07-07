@@ -34,7 +34,9 @@ class BagIndexServletSpec extends TestSupportFixture
   with ScalatraSuite
   with MockFactory
   with CustomMatchers
-  with BagIndexServletComponent with IndexBagComponent with DatabaseComponent {
+  with BagIndexServletComponent
+  with IndexBagComponent
+  with DatabaseComponent {
 
   override val database: Database = new Database {}
   override val index: IndexBag = new IndexBag {}

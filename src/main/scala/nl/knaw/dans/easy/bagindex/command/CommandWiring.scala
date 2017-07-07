@@ -20,8 +20,10 @@ import java.nio.file.Paths
 import nl.knaw.dans.easy.bagindex.ConfigurationComponent
 import nl.knaw.dans.easy.bagindex.access.AccessWiring
 import nl.knaw.dans.easy.bagindex.components.IndexWiring
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
-trait CommandWiring extends AccessWiring with IndexWiring with CommandLineOptionsComponent with ConfigurationComponent with DebugEnhancedLogging {
+trait CommandWiring extends AccessWiring
+  with IndexWiring
+  with CommandLineOptionsComponent
+  with ConfigurationComponent {
   val configuration: Configuration = Configuration(Paths.get(System.getProperty("app.home")))
 }

@@ -27,8 +27,7 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.util.{ Failure, Success, Try }
 
-trait BagStoreAccessComponent {
-  this: DebugEnhancedLogging =>
+trait BagStoreAccessComponent extends DebugEnhancedLogging {
 
   val bagStore: BagStoreAccess
 

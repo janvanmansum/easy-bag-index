@@ -18,8 +18,11 @@ package nl.knaw.dans.easy.bagindex.components
 import nl.knaw.dans.easy.bagindex.access.{ BagFacadeComponent, BagStoreAccessComponent }
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
-trait IndexWiring extends IndexBagComponent with IndexBagStoreComponent with DatabaseComponent with IndexBagStoreDatabaseComponent {
-  this: BagStoreAccessComponent with BagFacadeComponent with DebugEnhancedLogging =>
+trait IndexWiring extends IndexBagComponent
+  with IndexBagStoreComponent
+  with DatabaseComponent
+  with IndexBagStoreDatabaseComponent {
+  this: BagStoreAccessComponent with BagFacadeComponent =>
 
   override val database: Database = new Database {}
   override val index: IndexBag = new IndexBag {}

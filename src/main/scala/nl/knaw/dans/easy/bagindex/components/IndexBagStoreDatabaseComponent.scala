@@ -26,8 +26,7 @@ import resource.managed
 import scala.collection.immutable.Seq
 import scala.util.Try
 
-trait IndexBagStoreDatabaseComponent extends DatabaseComponent {
-  this: DebugEnhancedLogging =>
+trait IndexBagStoreDatabaseComponent extends DatabaseComponent with DebugEnhancedLogging {
 
   val indexDatabase: IndexBagStoreDatabase
 
@@ -132,5 +131,4 @@ trait IndexBagStoreDatabaseComponent extends DatabaseComponent {
         .map(_ => ())
     }
   }
-
 }

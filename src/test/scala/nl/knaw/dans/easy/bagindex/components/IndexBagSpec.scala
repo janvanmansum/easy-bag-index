@@ -18,14 +18,17 @@ package nl.knaw.dans.easy.bagindex.components
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex.access.{ BagFacadeComponent, BagStoreAccessComponent }
-import nl.knaw.dans.easy.bagindex.{ BagId, BagIdNotFoundException, BagIndexDatabaseFixture, BagInfo, BagNotFoundException, BagStoreFixture, Bagit4Fixture, BaseId, dateTimeFormatter }
+import nl.knaw.dans.easy.bagindex.{ BagId, BagIdNotFoundException, BagIndexDatabaseFixture, BagInfo, BagNotFoundException, BagStoreFixture, Bagit4Fixture, BaseId, TestSupportFixture, dateTimeFormatter }
 import nl.knaw.dans.lib.error._
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
 
 import scala.util.{ Failure, Success }
 
-class IndexBagSpec extends BagIndexDatabaseFixture with BagStoreFixture with Bagit4Fixture
+class IndexBagSpec extends TestSupportFixture
+  with BagIndexDatabaseFixture
+  with BagStoreFixture
+  with Bagit4Fixture
   with IndexBagComponent
   with BagStoreAccessComponent
   with BagFacadeComponent

@@ -25,12 +25,11 @@ import org.joda.time.DateTime
 
 import scala.util.Try
 
-trait IndexBagStoreComponent {
+trait IndexBagStoreComponent extends DebugEnhancedLogging {
   this: BagStoreAccessComponent
     with BagFacadeComponent
     with IndexBagStoreDatabaseComponent
-    with DatabaseComponent
-    with DebugEnhancedLogging =>
+    with DatabaseComponent =>
 
   val indexFull: IndexBagStore
 

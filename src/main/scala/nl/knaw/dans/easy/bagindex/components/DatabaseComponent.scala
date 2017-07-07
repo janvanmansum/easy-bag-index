@@ -26,8 +26,7 @@ import resource._
 import scala.collection.immutable.Seq
 import scala.util.{ Failure, Try }
 
-trait DatabaseComponent {
-  this: DebugEnhancedLogging =>
+trait DatabaseComponent extends DebugEnhancedLogging {
 
   val database: Database
 

@@ -45,8 +45,7 @@ trait BagFacadeComponent {
   }
 }
 
-trait Bagit4FacadeComponent extends BagFacadeComponent {
-  this: DebugEnhancedLogging =>
+trait Bagit4FacadeComponent extends BagFacadeComponent with DebugEnhancedLogging {
 
   class Bagit4Facade(bagFactory: BagFactory = new BagFactory) extends BagFacade {
 

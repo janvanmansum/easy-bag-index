@@ -23,7 +23,8 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
 import org.scalatest.BeforeAndAfterEach
 
-trait BagStoreFixture extends TestSupportFixture with BagStoreAccessComponent with DebugEnhancedLogging {
+trait BagStoreFixture extends BagStoreAccessComponent {
+  this: TestSupportFixture =>
 
   def initBagStores: Path = {
     val bagStoreBaseDir = testDir.resolve("bag-store")

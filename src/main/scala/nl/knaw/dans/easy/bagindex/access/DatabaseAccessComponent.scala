@@ -26,9 +26,7 @@ import resource._
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Try }
 
-trait DatabaseAccessComponent {
-  this: DebugEnhancedLogging =>
-  import logger._
+trait DatabaseAccessComponent extends DebugEnhancedLogging {
 
   val databaseAccess: DatabaseAccess
 
@@ -54,15 +52,15 @@ trait DatabaseAccessComponent {
     }
 
     def initConnectionPool(): Try[Unit] = Try {
-      info("Creating database connection ...")
+      logger.info("Creating database connection ...")
       pool = createConnectionPool
-      info(s"Database connected with URL = $dbUrl, user = $dbUsername, password = ****")
+      logger.info(s"Database connected with URL = $dbUrl, user = $dbUsername, password = ****")
     }
 
     def closeConnectionPool(): Try[Unit] = Try {
-      info("Closing database connection ...")
+      logger.info("Closing database connection ...")
       pool.close()
-      info("Database connection closed")
+      logger.info("Database connection closed")
     }
 
     /**

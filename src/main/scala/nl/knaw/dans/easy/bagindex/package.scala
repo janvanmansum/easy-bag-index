@@ -44,14 +44,6 @@ package object bagindex {
   // TODO: rename to BagIndexRecord (or something, but BagInfo is easily confused with bag-info.txt)
   case class BagInfo(bagId: BagId, baseId: BaseId, created: DateTime, doi: Doi)
 
-  object Version {
-    def apply(): String = {
-      val props = new Properties()
-      props.load(getClass.getResourceAsStream("/Version.properties"))
-      props.getProperty("application.version")
-    }
-  }
-
   /**
    * Conversions between Scala Option and Java 8 Optional.
    */

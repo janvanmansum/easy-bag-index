@@ -21,7 +21,8 @@ import org.apache.commons.configuration.PropertiesConfiguration
 
 import scala.collection.JavaConverters._
 
-trait ConfigurationSupportFixture extends TestSupportFixture with ConfigurationComponent {
+trait ConfigurationSupportFixture extends ConfigurationComponent {
+  this: TestSupportFixture =>
 
   override val configuration: Configuration = {
     val versionFile = testDir.resolve("bin/version")

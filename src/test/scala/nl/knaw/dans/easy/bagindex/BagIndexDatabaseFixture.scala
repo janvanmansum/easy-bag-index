@@ -19,16 +19,14 @@ import java.nio.file.{ Files, Path }
 import java.sql.Connection
 
 import nl.knaw.dans.easy.bagindex.access.DatabaseAccessComponent
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.scalatest.BeforeAndAfterEach
 import resource._
 
 import scala.io.Source
 import scala.util.Success
 
-trait BagIndexDatabaseFixture extends TestSupportFixture with BeforeAndAfterEach
-  with DatabaseAccessComponent
-  with DebugEnhancedLogging {
+trait BagIndexDatabaseFixture extends BeforeAndAfterEach with DatabaseAccessComponent {
+  this: TestSupportFixture =>
 
   val databaseFile: Path = testDir.resolve("database.db")
 

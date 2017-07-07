@@ -25,7 +25,11 @@ import resource.managed
 
 import scala.io.Source
 
-class ServiceStarterSpec extends TestSupportFixture with ServerTestSupportFixture with ConfigurationSupportFixture with BeforeAndAfterEach with OneInstancePerTest {
+class ServiceStarterSpec extends TestSupportFixture
+  with ServerTestSupportFixture
+  with ConfigurationSupportFixture
+  with BeforeAndAfterEach
+  with OneInstancePerTest {
 
   private lazy val daemon = new ServiceStarter
 

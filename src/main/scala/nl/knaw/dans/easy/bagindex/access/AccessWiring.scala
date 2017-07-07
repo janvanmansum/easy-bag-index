@@ -18,12 +18,13 @@ package nl.knaw.dans.easy.bagindex.access
 import java.nio.file.{ Files, Path, Paths }
 
 import nl.knaw.dans.easy.bagindex.ConfigurationComponent
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 import scala.collection.JavaConverters._
 
-trait AccessWiring extends Bagit4FacadeComponent with BagStoreAccessComponent with DatabaseAccessComponent {
-  this: ConfigurationComponent with DebugEnhancedLogging =>
+trait AccessWiring extends Bagit4FacadeComponent
+  with BagStoreAccessComponent
+  with DatabaseAccessComponent {
+  this: ConfigurationComponent =>
 
   override lazy val bagFacade: BagFacade = new Bagit4Facade()
   override lazy val bagStore: BagStoreAccess = new BagStoreAccess {

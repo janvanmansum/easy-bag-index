@@ -21,7 +21,7 @@ import nl.knaw.dans.easy.bagindex.components.IndexWiring
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 trait ServerWiring extends BagIndexServletComponent with BagIndexServerComponent {
-  this: IndexWiring with AccessWiring with ConfigurationComponent with DebugEnhancedLogging =>
+  this: IndexWiring with AccessWiring with ConfigurationComponent =>
 
   val bagIndexServlet: BagIndexServlet = new BagIndexServlet {}
   val server: BagIndexServer = new BagIndexServer(configuration.properties.getInt("bag-index.daemon.http.port"))

@@ -25,8 +25,8 @@ import org.scalatra.servlet.ScalatraListener
 
 import scala.util.Try
 
-trait BagIndexServerComponent {
-  this: BagIndexServletComponent with DebugEnhancedLogging =>
+trait BagIndexServerComponent extends DebugEnhancedLogging {
+  this: BagIndexServletComponent =>
 
   val server: BagIndexServer
 

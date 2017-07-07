@@ -23,6 +23,9 @@ import nl.knaw.dans.easy.bagindex.components.IndexWiring
 import nl.knaw.dans.easy.bagindex.server.ServerWiring
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
-trait ServiceWiring extends ServerWiring with AccessWiring with IndexWiring with ConfigurationComponent with DebugEnhancedLogging {
+trait ServiceWiring extends ServerWiring
+  with AccessWiring
+  with IndexWiring
+  with ConfigurationComponent {
   lazy val configuration: Configuration = Configuration(Paths.get(System.getProperty("app.home")))
 }

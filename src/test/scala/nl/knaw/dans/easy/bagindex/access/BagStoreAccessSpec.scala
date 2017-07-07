@@ -18,12 +18,12 @@ package nl.knaw.dans.easy.bagindex.access
 import java.nio.file.Files
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagNotFoundException, BagStoreFixture }
+import nl.knaw.dans.easy.bagindex.{ BagNotFoundException, BagStoreFixture, TestSupportFixture }
 import org.apache.commons.io.FileUtils
 
 import scala.util.{ Failure, Success }
 
-class BagStoreAccessSpec extends BagStoreFixture {
+class BagStoreAccessSpec extends TestSupportFixture with BagStoreFixture {
   private val bagStoreBaseDir = bagStore.baseDirs.headOption.getOrElse(throw new NoSuchElementException("no bagstore base directory found"))
 
   "toLocation" should "resolve the path to the actual bag identified with a bagId" in {

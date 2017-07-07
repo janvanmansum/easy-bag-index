@@ -18,13 +18,13 @@ package nl.knaw.dans.easy.bagindex.access
 import java.sql.SQLException
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.BagIndexDatabaseFixture
+import nl.knaw.dans.easy.bagindex.{ BagIndexDatabaseFixture, TestSupportFixture }
 import nl.knaw.dans.easy.bagindex.components.DatabaseComponent
 import org.joda.time.DateTime
 
 import scala.util.{ Failure, Success, Try }
 
-class DatabaseAccessSpec extends BagIndexDatabaseFixture with DatabaseComponent {
+class DatabaseAccessSpec extends TestSupportFixture with BagIndexDatabaseFixture with DatabaseComponent {
 
   override val database: Database = new Database {}
 

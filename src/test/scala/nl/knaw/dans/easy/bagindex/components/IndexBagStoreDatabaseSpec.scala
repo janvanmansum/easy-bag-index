@@ -17,13 +17,16 @@ package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagId, BagIndexDatabaseFixture, BagInfo }
+import nl.knaw.dans.easy.bagindex.{ BagId, BagIndexDatabaseFixture, BagInfo, TestSupportFixture }
 import nl.knaw.dans.lib.error._
 import org.joda.time.DateTime
 
 import scala.util.Success
 
-class IndexBagStoreDatabaseSpec extends BagIndexDatabaseFixture with IndexBagStoreDatabaseComponent with DatabaseComponent {
+class IndexBagStoreDatabaseSpec extends TestSupportFixture
+  with BagIndexDatabaseFixture
+  with IndexBagStoreDatabaseComponent
+  with DatabaseComponent {
 
   override val database: Database = new Database {}
   override val indexDatabase: IndexBagStoreDatabase = new IndexBagStoreDatabase {}
@@ -109,10 +112,10 @@ class IndexBagStoreDatabaseSpec extends BagIndexDatabaseFixture with IndexBagSto
     val zBag1 :: zBag2 :: zTail = zBags.values.toList
 
     inside(indexDatabase.getAllBagsInSequence(bags('f')._1)) {
-      case Success(sequence) => sequence should (have size 7 and contain allOf(fBag1, fBag2, fTail:_*))
+      case Success(sequence) => sequence should (have size 7 and contain allOf(fBag1, fBag2, fTail: _*))
     }
     inside(indexDatabase.getAllBagsInSequence(bags('z')._1)) {
-      case Success(sequence) => sequence should (have size 3 and contain allOf(zBag1, zBag2, zTail:_*))
+      case Success(sequence) => sequence should (have size 3 and contain allOf(zBag1, zBag2, zTail: _*))
     }
   }
 
