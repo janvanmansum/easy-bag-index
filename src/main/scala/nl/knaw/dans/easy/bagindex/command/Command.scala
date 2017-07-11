@@ -22,7 +22,7 @@ import scala.util.{ Failure, Success }
 
 object Command extends App with CommandWiring {
 
-  val commandLine: CommandLineOptions = new CommandLineOptions(args)
+  override val commandLine: CommandLineOptions = new CommandLineOptions(args)
   commandLine.verify()
 
   databaseAccess.initConnectionPool()

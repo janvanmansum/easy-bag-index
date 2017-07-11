@@ -25,5 +25,5 @@ trait CommandWiring extends AccessWiring
   with IndexWiring
   with CommandLineOptionsComponent
   with ConfigurationComponent {
-  val configuration: Configuration = Configuration(Paths.get(System.getProperty("app.home")))
+  override lazy val configuration: Configuration = Configuration(Paths.get(System.getProperty("app.home")))
 }
