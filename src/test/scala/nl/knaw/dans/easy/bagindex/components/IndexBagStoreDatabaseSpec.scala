@@ -147,8 +147,10 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
   "updateBagsInSequence" should "update all bags in the sequence to have the newBaseId as their base in the database" in {
     val bags = setupBagStoreIndexTestCase()
 
-    val fBags = indexDatabase.getAllBagsInSequence(bags('f')._1).get.map(_._1)
-    indexDatabase.updateBagsInSequence(bags('g')._1, fBags) shouldBe a[Success[_]]
+    inside(indexDatabase.getAllBagsInSequence(bags('f')._1)) { case Success(xs) =>
+      val fBags = xs.map { case (bagId, _) => bagId }
+      indexDatabase.updateBagsInSequence(bags('g')._1, fBags) shouldBe a[Success[_]]
+    }
 
     inside(database.getAllBagInfos) {
       case Success(rels) => rels.map(rel => (rel.bagId, rel.baseId)) should contain allOf(
