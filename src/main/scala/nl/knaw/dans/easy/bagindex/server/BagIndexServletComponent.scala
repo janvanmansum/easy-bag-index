@@ -157,7 +157,6 @@ trait BagIndexServletComponent {
         case e: NoDoiFoundException => BadRequest(e.getMessage)
         case e: BagAlreadyInIndexException => BadRequest(e.getMessage)
         case e =>
-          e.printStackTrace()
           logger.error("Unexpected type of failure", e)
           InternalServerError(s"[${ DateTime.now }] Unexpected type of failure. Please consult the logs")
       }

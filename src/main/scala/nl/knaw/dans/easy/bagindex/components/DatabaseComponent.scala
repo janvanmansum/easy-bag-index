@@ -112,7 +112,7 @@ trait DatabaseComponent extends DebugEnhancedLogging {
      */
     def getBagInfo(bagId: BagId)(implicit connection: Connection): Try[BagInfo] = {
       trace(bagId)
-      Query("SELECT * FROM bag_info WHERE bagId=?;")(_.setString(1, bagId.toString))
+      Query("SELECT bagId, base, created, doi FROM bag_info WHERE bagId=?;")(_.setString(1, bagId.toString))
         .select(getBagInfo)(() => throw BagIdNotFoundException(bagId))
     }
 
@@ -125,7 +125,7 @@ trait DatabaseComponent extends DebugEnhancedLogging {
      */
     def getBagsWithDoi(doi: Doi)(implicit connection: Connection): Try[Seq[BagInfo]] = {
       trace(doi)
-      Query("SELECT * FROM bag_info WHERE doi=?;")(_.setString(1, doi)).selectMany(getBagInfo)
+      Query("SELECT bagId, base, created, doi FROM bag_info WHERE doi=?;")(_.setString(1, doi)).selectMany(getBagInfo)
     }
 
     /**
@@ -136,7 +136,7 @@ trait DatabaseComponent extends DebugEnhancedLogging {
      * @return a list of all bag relations
      */
     def getAllBagInfos(implicit connection: Connection): Try[Seq[BagInfo]] = {
-      Query("SELECT * FROM bag_info;")(_ => ()).selectMany(getBagInfo)
+      Query("SELECT bagId, base, created, doi FROM bag_info;")(_ => ()).selectMany(getBagInfo)
     }
 
     /**
