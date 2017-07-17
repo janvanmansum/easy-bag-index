@@ -31,6 +31,7 @@ class BagIndexServletSpec extends TestSupportFixture
   with BagStoreFixture
   with Bagit4Fixture
   with ConfigurationSupportFixture
+  with ServletFixture
   with ScalatraSuite
   with MockFactory
   with CustomMatchers
