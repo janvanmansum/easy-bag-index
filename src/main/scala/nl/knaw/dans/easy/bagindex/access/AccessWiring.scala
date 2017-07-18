@@ -21,12 +21,12 @@ import nl.knaw.dans.easy.bagindex.ConfigurationComponent
 
 import scala.collection.JavaConverters._
 
-trait AccessWiring extends Bagit4FacadeComponent
+trait AccessWiring extends Bagit5FacadeComponent
   with BagStoreAccessComponent
   with DatabaseAccessComponent {
   this: ConfigurationComponent =>
 
-  override lazy val bagFacade: BagFacade = new Bagit4Facade()
+  override lazy val bagFacade: BagFacade = new Bagit5Facade()
   override lazy val bagStore: BagStoreAccess = new BagStoreAccess {
     override val baseDirs: Seq[Path] = configuration.properties.getList("bag-index.bag-store.base-dirs")
       .asScala

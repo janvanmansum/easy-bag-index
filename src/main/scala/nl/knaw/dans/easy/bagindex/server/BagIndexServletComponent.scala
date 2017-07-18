@@ -151,8 +151,10 @@ trait BagIndexServletComponent {
     private def defaultErrorHandling(t: Throwable): ActionResult = {
       t match {
         case e: IllegalArgumentException => BadRequest(e.getMessage)
+        case e: BagReaderException => BadRequest(e.getMessage)
         case e: BagIdNotFoundException => NotFound(e.getMessage)
         case e: NotABagDirException => NotFound(e.getMessage)
+        case e: InvalidIsVersionOfException => BadRequest(e.getMessage)
         case e: BagNotFoundException => BadRequest(e.getMessage)
         case e: NoDoiFoundException => BadRequest(e.getMessage)
         case e: BagAlreadyInIndexException => BadRequest(e.getMessage)

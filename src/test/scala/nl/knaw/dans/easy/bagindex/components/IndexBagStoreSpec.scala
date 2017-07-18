@@ -17,13 +17,13 @@ package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagIndexDatabaseFixture, BagStoreFixture, Bagit4Fixture, TestSupportFixture }
+import nl.knaw.dans.easy.bagindex.{ BagIndexDatabaseFixture, BagStoreFixture, Bagit5Fixture, TestSupportFixture }
 
 import scala.util.Success
 
 class IndexBagStoreSpec extends TestSupportFixture
   with BagStoreFixture
-  with Bagit4Fixture
+  with Bagit5Fixture
   with BagIndexDatabaseFixture
   with IndexBagStoreComponent
   with IndexBagStoreDatabaseComponent {

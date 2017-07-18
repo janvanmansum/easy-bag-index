@@ -28,7 +28,7 @@ import scala.util.{ Failure, Success }
 class IndexBagSpec extends TestSupportFixture
   with BagIndexDatabaseFixture
   with BagStoreFixture
-  with Bagit4Fixture
+  with Bagit5Fixture
   with IndexBagComponent
   with BagStoreAccessComponent
   with BagFacadeComponent

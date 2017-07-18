@@ -29,7 +29,7 @@ import scala.xml.XML
 class BagIndexServletSpec extends TestSupportFixture
   with BagIndexDatabaseFixture
   with BagStoreFixture
-  with Bagit4Fixture
+  with Bagit5Fixture
   with ConfigurationSupportFixture
   with ServletFixture
   with ScalatraSuite

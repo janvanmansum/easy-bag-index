@@ -22,7 +22,7 @@
     <parent>
         <groupId>nl.knaw.dans.shared</groupId>
         <artifactId>dans-scala-prototype</artifactId>
-        <version>1.45</version>
+        <version>1.48</version>
     </parent>
 
     <groupId>nl.knaw.dans.easy</groupId>
@@ -142,6 +142,7 @@
         <dependency>
             <groupId>gov.loc</groupId>
             <artifactId>bagit</artifactId>
+            <version>5.0.2</version>
         </dependency>
 
         <!-- databases -->
