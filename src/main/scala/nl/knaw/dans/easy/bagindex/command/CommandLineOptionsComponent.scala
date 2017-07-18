@@ -41,10 +41,11 @@ trait CommandLineOptionsComponent {
       s"""
          |Index for a bag store
          |
-      |Usage:
+         |Usage:
          |
-      |$printedName \\
+         |$printedName \\
          |${_________}  | index [bagId]
+         |${_________}  | run-service
          |
       |Options:
     """.stripMargin)

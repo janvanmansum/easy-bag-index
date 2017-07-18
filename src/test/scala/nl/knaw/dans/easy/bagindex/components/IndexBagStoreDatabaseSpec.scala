@@ -102,11 +102,6 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
     bagId
   }
 
-  private def getDate(char: Char)(implicit bags: Map[Char, (BagId, DateTime)]) = {
-    val (_, date) = bags(char)
-    date
-  }
-
   "getAllBaseBagIds" should "return a sequence of bagIds refering to bags that are the base of their sequence" in {
     implicit val bags = setupBagStoreIndexTestCase()
 
@@ -116,7 +111,7 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
   }
 
   "getAllBagsInSequence" should "return a sequence of bagIds and date/times of all bags that are in the same sequence as the given bagId" in {
-    val bags = setupBagStoreIndexTestCase()
+    implicit val bags = setupBagStoreIndexTestCase()
     val (zBags, fBags) = bags.partition { case (c, _) => List('x', 'y', 'z').contains(c) }
     val fBag1 :: fBag2 :: fTail = fBags.values.toList
     val zBag1 :: zBag2 :: zTail = zBags.values.toList
@@ -155,7 +150,7 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
   }
 
   "updateBagsInSequence" should "update all bags in the sequence to have the newBaseId as their base in the database" in {
-    val bags = setupBagStoreIndexTestCase()
+    implicit val bags = setupBagStoreIndexTestCase()
 
     inside(indexDatabase.getAllBagsInSequence(getBagId('f'))) { case Success(xs) =>
       val fBags = xs.map { case (bagId, _) => bagId }
