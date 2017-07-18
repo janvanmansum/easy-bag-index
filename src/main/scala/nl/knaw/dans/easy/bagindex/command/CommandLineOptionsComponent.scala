@@ -64,7 +64,7 @@ trait CommandLineOptionsComponent {
 
     val runService = new Subcommand("run-service") {
       descr(
-        "Starts the EASY Bag Store as a daemon that services HTTP requests")
+        "Starts the EASY Bag Index as a daemon that services HTTP requests")
       footer(SUBCOMMAND_SEPARATOR)
     }
     addSubcommand(runService)

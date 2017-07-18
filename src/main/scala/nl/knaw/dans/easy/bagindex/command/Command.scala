@@ -15,13 +15,14 @@
  */
 package nl.knaw.dans.easy.bagindex.command
 
+import nl.knaw.dans.easy.bagindex.service.ServiceWiring
 import nl.knaw.dans.lib.error._
 
 import scala.language.reflectiveCalls
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
 
-object Command extends App with CommandWiring {
+object Command extends App with CommandLineOptionsComponent with ServiceWiring {
 
   type FeedBackMessage = String
 
@@ -35,7 +36,11 @@ object Command extends App with CommandWiring {
     _ <- databaseAccess.closeConnectionPool()
   } yield msg
 
-  def runCommandLine: Try[FeedBackMessage] = commandLine.subcommand match {
+  result.doIfSuccess(msg => println(s"OK: $msg"))
+    .doIfFailure { case e => logger.error(e.getMessage, e) }
+    .doIfFailure { case NonFatal(e) => println(s"FAILED: ${e.getMessage}") }
+
+  private def runCommandLine: Try[FeedBackMessage] = commandLine.subcommand match {
     case Some(cmd @ commandLine.index) =>
       databaseAccess.doTransaction(implicit connection => {
         cmd.bagId.toOption
@@ -50,10 +55,6 @@ object Command extends App with CommandWiring {
     case Some(_ @ commandLine.runService) => runAsService()
     case _ => Failure(new IllegalArgumentException(s"Unknown command: ${ commandLine.subcommand }"))
   }
-
-  result.doIfSuccess(msg => println(s"OK: $msg"))
-    .doIfFailure { case e => logger.error(e.getMessage, e) }
-    .doIfFailure { case NonFatal(e) => println(s"FAILED: ${e.getMessage}") }
 
   private def runAsService(): Try[FeedBackMessage] = Try {
     Runtime.getRuntime.addShutdownHook(new Thread("service-shutdown") {

@@ -18,9 +18,7 @@
 
 ARGS=$@
 APPHOME=home
-. apphome.sh
 
-mvn exec:java -Pservice \
-              -Dapp.home=$APPHOME \
+mvn exec:java -Dapp.home=$APPHOME \
               -Dlogback.configurationFile=$APPHOME/cfg/logback-service.xml \
-              -Dexec.args="$ARGS"
+              -Dexec.args="run-service"
