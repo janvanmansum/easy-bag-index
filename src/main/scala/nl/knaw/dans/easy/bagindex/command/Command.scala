@@ -18,18 +18,26 @@ package nl.knaw.dans.easy.bagindex.command
 import nl.knaw.dans.lib.error._
 
 import scala.language.reflectiveCalls
-import scala.util.{ Failure, Success }
+import scala.util.control.NonFatal
+import scala.util.{ Failure, Success, Try }
 
 object Command extends App with CommandWiring {
 
-  override val commandLine: CommandLineOptions = new CommandLineOptions(args)
-  commandLine.verify()
+  type FeedBackMessage = String
 
-  databaseAccess.initConnectionPool()
+  override val commandLine: CommandLineOptions = new CommandLineOptions(args) {
+    verify()
+  }
 
-  databaseAccess.doTransaction(implicit connection => {
-    commandLine.subcommand match {
-      case Some(cmd @ commandLine.index) =>
+  val result: Try[FeedBackMessage] = for {
+    _ <- databaseAccess.initConnectionPool()
+    msg <- runCommandLine
+    _ <- databaseAccess.closeConnectionPool()
+  } yield msg
+
+  def runCommandLine: Try[FeedBackMessage] = commandLine.subcommand match {
+    case Some(cmd @ commandLine.index) =>
+      databaseAccess.doTransaction(implicit connection => {
         cmd.bagId.toOption
           .map(index.addFromBagStore(_).map(_ => s"Added bag with bagId ${ cmd.bagId() }"))
           .getOrElse {
@@ -38,12 +46,29 @@ object Command extends App with CommandWiring {
             else
               Success("Indexing aborted.")
           }
-      case _ => Failure(new IllegalArgumentException(s"Unknown command: ${ commandLine.subcommand }"))
-    }
-  })
-    .map(msg => println(s"OK: $msg"))
-    .doIfFailure { case e => logger.error(e.getMessage, e) }
-    .getOrRecover(e => println(s"FAILED: ${ e.getMessage }"))
+      })
+    case Some(_ @ commandLine.runService) => runAsService()
+    case _ => Failure(new IllegalArgumentException(s"Unknown command: ${ commandLine.subcommand }"))
+  }
 
-  databaseAccess.closeConnectionPool()
+  result.doIfSuccess(msg => println(s"OK: $msg"))
+    .doIfFailure { case e => logger.error(e.getMessage, e) }
+    .doIfFailure { case NonFatal(e) => println(s"FAILED: ${e.getMessage}") }
+
+  private def runAsService(): Try[FeedBackMessage] = Try {
+    Runtime.getRuntime.addShutdownHook(new Thread("service-shutdown") {
+      override def run(): Unit = {
+        logger.info("Stopping service ...")
+        server.stop()
+        logger.info("Cleaning up ...")
+        server.destroy()
+        logger.info("Service stopped.")
+      }
+    })
+
+    server.start()
+    logger.info("Service started ...")
+    Thread.currentThread.join()
+    "Service terminated normally."
+  }
 }

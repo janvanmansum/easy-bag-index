@@ -20,10 +20,12 @@ import java.nio.file.Paths
 import nl.knaw.dans.easy.bagindex.ConfigurationComponent
 import nl.knaw.dans.easy.bagindex.access.AccessWiring
 import nl.knaw.dans.easy.bagindex.components.IndexWiring
+import nl.knaw.dans.easy.bagindex.server.ServerWiring
 
-trait CommandWiring extends AccessWiring
+trait CommandWiring extends CommandLineOptionsComponent
+  with AccessWiring
   with IndexWiring
-  with CommandLineOptionsComponent
+  with ServerWiring
   with ConfigurationComponent {
   override lazy val configuration: Configuration = Configuration(Paths.get(System.getProperty("app.home")))
 }

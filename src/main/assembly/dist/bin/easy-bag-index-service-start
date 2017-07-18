@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
+
 BINPATH=`command readlink -f $0 2> /dev/null || command grealpath $0 2> /dev/null`
 APPHOME=`dirname \`dirname $BINPATH \``
-MODULE=`basename $APPHOME`
-LOGBACK_CFG=/etc/opt/dans.knaw.nl/$MODULE/logback-service.xml
+FHS_CONFIG=/etc/opt/dans.knaw.nl/easy-bag-index
 
-if [ ! -f $LOGBACK_CFG ]; then
-    LOGBACK_CFG=$APPHOME/cfg/logback-service.xml
+if [ -d $FHS_CONFIG ]
+then
+    LOGCONFIG=$FHS_CONFIG/logback-service.xml
+else
+    LOGCONFIG=$APPHOME/cfg/logback-service.xml
 fi
 
-java -Dlogback.configurationFile=$LOGBACK_CFG \
+# Set LC_ALL to a locale with UTF-8 to make sure non-ASCII file names are written correctly to the file system (see: EASY-1254).
+LC_ALL=en_US.UTF-8 \
+java -Dlogback.configurationFile=$LOGCONFIG \
      -Dapp.home=$APPHOME \
-     -server \
-     -cp $APPHOME/bin/easy-bag-index.jar nl.knaw.dans.easy.bagindex.service.BagIndexService
+     -cp $APPHOME/bin/easy-bag-index.jar run-service

@@ -35,6 +35,7 @@ trait CommandLineOptionsComponent {
 
     printedName = "easy-bag-index"
     private val _________ = " " * printedName.length
+    private val SUBCOMMAND_SEPARATOR = "---\n"
     version(s"$printedName v${ configuration.version }")
     banner(
       s"""
@@ -56,9 +57,16 @@ trait CommandLineOptionsComponent {
       val bagId: ScallopOption[BagId] = trailArg[UUID](name = "bagId",
         descr = "the bag identifier to be added",
         required = false)
+      footer(SUBCOMMAND_SEPARATOR)
     }
-
     addSubcommand(index)
+
+    val runService = new Subcommand("run-service") {
+      descr(
+        "Starts the EASY Bag Store as a daemon that services HTTP requests")
+      footer(SUBCOMMAND_SEPARATOR)
+    }
+    addSubcommand(runService)
 
     footer("")
 
