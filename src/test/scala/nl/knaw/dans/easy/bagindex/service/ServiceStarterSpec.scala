@@ -19,7 +19,9 @@ import java.nio.file.{ Files, Paths }
 import java.sql.DriverManager
 
 import nl.knaw.dans.easy.bagindex.{ ConfigurationSupportFixture, ServerTestSupportFixture, TestSupportFixture }
+import org.apache.commons.daemon.DaemonContext
 import org.apache.commons.io.FileUtils
+import org.scalamock.scalatest.MockFactory
 import org.scalatest.{ BeforeAndAfterEach, OneInstancePerTest }
 import resource.managed
 
@@ -28,6 +30,7 @@ import scala.io.Source
 class ServiceStarterSpec extends TestSupportFixture
   with ServerTestSupportFixture
   with ConfigurationSupportFixture
+  with MockFactory
   with BeforeAndAfterEach
   with OneInstancePerTest {
 
@@ -64,7 +67,7 @@ class ServiceStarterSpec extends TestSupportFixture
     databaseFile.toFile should exist
     all (bagStoreBaseDirs.map(_.toFile)) should exist
 
-    daemon.init(null)
+    daemon.init(mock[DaemonContext])
     daemon.start()
   }
 

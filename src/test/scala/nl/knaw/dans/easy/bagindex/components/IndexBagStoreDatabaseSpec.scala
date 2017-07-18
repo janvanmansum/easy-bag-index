@@ -97,11 +97,21 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
     )
   }
 
+  private def getBagId(char: Char)(implicit bags: Map[Char, (BagId, DateTime)]) = {
+    val (bagId, _) = bags(char)
+    bagId
+  }
+
+  private def getDate(char: Char)(implicit bags: Map[Char, (BagId, DateTime)]) = {
+    val (_, date) = bags(char)
+    date
+  }
+
   "getAllBaseBagIds" should "return a sequence of bagIds refering to bags that are the base of their sequence" in {
-    val bags = setupBagStoreIndexTestCase()
+    implicit val bags = setupBagStoreIndexTestCase()
 
     inside(indexDatabase.getAllBaseBagIds) {
-      case Success(bases) => bases should contain allOf(bags('f')._1, bags('z')._1)
+      case Success(bases) => bases should contain allOf(getBagId('f'), getBagId('z'))
     }
   }
 
@@ -111,10 +121,10 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
     val fBag1 :: fBag2 :: fTail = fBags.values.toList
     val zBag1 :: zBag2 :: zTail = zBags.values.toList
 
-    inside(indexDatabase.getAllBagsInSequence(bags('f')._1)) {
+    inside(indexDatabase.getAllBagsInSequence(getBagId('f'))) {
       case Success(sequence) => sequence should (have size 7 and contain allOf(fBag1, fBag2, fTail: _*))
     }
-    inside(indexDatabase.getAllBagsInSequence(bags('z')._1)) {
+    inside(indexDatabase.getAllBagsInSequence(getBagId('z'))) {
       case Success(sequence) => sequence should (have size 3 and contain allOf(zBag1, zBag2, zTail: _*))
     }
   }
@@ -147,24 +157,24 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
   "updateBagsInSequence" should "update all bags in the sequence to have the newBaseId as their base in the database" in {
     val bags = setupBagStoreIndexTestCase()
 
-    inside(indexDatabase.getAllBagsInSequence(bags('f')._1)) { case Success(xs) =>
+    inside(indexDatabase.getAllBagsInSequence(getBagId('f'))) { case Success(xs) =>
       val fBags = xs.map { case (bagId, _) => bagId }
-      indexDatabase.updateBagsInSequence(bags('g')._1, fBags) shouldBe a[Success[_]]
+      indexDatabase.updateBagsInSequence(getBagId('g'), fBags) shouldBe a[Success[_]]
     }
 
     inside(database.getAllBagInfos) {
       case Success(rels) => rels.map(rel => (rel.bagId, rel.baseId)) should contain allOf(
-        (bags('a')._1, bags('g')._1),
-        (bags('b')._1, bags('g')._1),
-        (bags('c')._1, bags('g')._1),
-        (bags('d')._1, bags('g')._1),
-        (bags('e')._1, bags('g')._1),
-        (bags('f')._1, bags('g')._1),
-        (bags('g')._1, bags('g')._1),
+        (getBagId('a'), getBagId('g')),
+        (getBagId('b'), getBagId('g')),
+        (getBagId('c'), getBagId('g')),
+        (getBagId('d'), getBagId('g')),
+        (getBagId('e'), getBagId('g')),
+        (getBagId('f'), getBagId('g')),
+        (getBagId('g'), getBagId('g')),
         // x, y and z should be untouched
-        (bags('x')._1, bags('y')._1),
-        (bags('y')._1, bags('z')._1),
-        (bags('z')._1, bags('z')._1)
+        (getBagId('x'), getBagId('y')),
+        (getBagId('y'), getBagId('z')),
+        (getBagId('z'), getBagId('z'))
       )
     }
   }
