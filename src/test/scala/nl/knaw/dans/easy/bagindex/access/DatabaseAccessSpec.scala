@@ -13,46 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagindex.components
+package nl.knaw.dans.easy.bagindex.access
 
 import java.sql.SQLException
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.BagIndexDatabaseFixture
+import nl.knaw.dans.easy.bagindex.{ BagIndexDatabaseFixture, TestSupportFixture }
+import nl.knaw.dans.easy.bagindex.components.DatabaseComponent
 import org.joda.time.DateTime
 
 import scala.util.{ Failure, Success, Try }
 
-class DatabaseAccessSpec extends BagIndexDatabaseFixture with Database {
+class DatabaseAccessSpec extends TestSupportFixture with BagIndexDatabaseFixture with DatabaseComponent {
+
+  override val database: Database = new Database {}
 
   "doTransaction" should "succeed when the arg returns a Success" in {
-    doTransaction(_ => Success("foo")) should matchPattern { case Success("foo") => }
+    databaseAccess.doTransaction(_ => Success("foo")) should matchPattern { case Success("foo") => }
   }
 
   it should "fail when the arg function returns a Failure" in {
-    inside(doTransaction(_ => Failure(new Exception("error message")))) {
+    inside(databaseAccess.doTransaction(_ => Failure(new Exception("error message")))) {
       case Failure(e) => e should have message "error message"
     }
   }
 
   it should "fail when the arg function closes the connection" in {
-    doTransaction(c => Try { c.close() }) should matchPattern { case Failure(_: SQLException) => }
+    databaseAccess.doTransaction(c => Try { c.close() }) should matchPattern { case Failure(_: SQLException) => }
   }
 
   it should "rollback changes made to the database whenever an error occurs in the arg function" in {
     val bagId = UUID.randomUUID()
 
-    val originalContent = getAllBagInfos
+    val originalContent = database.getAllBagInfos
     inside(originalContent) {
       case Success(infos) => infos.map(_.bagId) should not contain bagId
     }
 
-    inside(doTransaction(implicit c => {
-      val add = addBagInfo(bagId, bagId, DateTime.now, testDoi)(c)
+    inside(databaseAccess.doTransaction(implicit c => {
+      val add = database.addBagInfo(bagId, bagId, DateTime.now, testDoi)(c)
       add shouldBe a[Success[_]]
 
       // check that the bag was added properly
-      inside(getAllBagInfos(c)) {
+      inside(database.getAllBagInfos(c)) {
         case Success(infos) =>
           infos.map(_.bagId) should contain(bagId)
       }
@@ -64,7 +67,7 @@ class DatabaseAccessSpec extends BagIndexDatabaseFixture with Database {
     }
 
     // the current content should equal the old content
-    val newContent = getAllBagInfos
+    val newContent = database.getAllBagInfos
     newContent shouldBe originalContent
     inside(newContent) {
       case Success(infos) => infos.map(_.bagId) should not contain bagId
@@ -74,17 +77,17 @@ class DatabaseAccessSpec extends BagIndexDatabaseFixture with Database {
   it should "rollback changes made to the database whenever an error occurs in the post arg func phase" in {
     val bagId = UUID.randomUUID()
 
-    val originalContent = getAllBagInfos
+    val originalContent = database.getAllBagInfos
     inside(originalContent) {
       case Success(infos) => infos.map(_.bagId) should not contain bagId
     }
 
-    doTransaction(implicit c => {
-      val add = addBagInfo(bagId, bagId, DateTime.now, testDoi)(c)
+    databaseAccess.doTransaction(implicit c => {
+      val add = database.addBagInfo(bagId, bagId, DateTime.now, testDoi)(c)
       add shouldBe a[Success[_]]
 
       // check that the bag was added properly
-      inside(getAllBagInfos(c)) {
+      inside(database.getAllBagInfos(c)) {
         case Success(infos) =>
           infos.map(_.bagId) should contain(bagId)
       }
@@ -96,7 +99,7 @@ class DatabaseAccessSpec extends BagIndexDatabaseFixture with Database {
     }) should matchPattern { case Failure(_: SQLException) => }
 
     // the current content should equal the old content
-    val newContent = getAllBagInfos
+    val newContent = database.getAllBagInfos
     newContent shouldBe originalContent
     inside(newContent) {
       case Success(infos) => infos.map(_.bagId) should not contain bagId

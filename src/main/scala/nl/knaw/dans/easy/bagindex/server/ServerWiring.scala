@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import javax.servlet.ServletContext
+package nl.knaw.dans.easy.bagindex.server
 
-import nl.knaw.dans.easy.bagindex.BagIndexApp
-import nl.knaw.dans.easy.bagindex.service.BagIndexServlet
-import org.scalatra.LifeCycle
+import nl.knaw.dans.easy.bagindex.ConfigurationComponent
+import nl.knaw.dans.easy.bagindex.access.AccessWiring
+import nl.knaw.dans.easy.bagindex.components.IndexWiring
+import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
-class ScalatraBootstrap extends LifeCycle {
-  override def init(context: ServletContext) {
-    import nl.knaw.dans.easy.bagindex.{CONTEXT_ATTRIBUTE_KEY_BAGINDEX_APP => appKey}
-    context.getAttribute(appKey) match {
-      case app: BagIndexApp => context.mount(BagIndexServlet(app), "/")
-      case _ => throw new IllegalStateException("Service not configured: no BagIndex application found")
-    }
-  }
+trait ServerWiring extends BagIndexServletComponent with BagIndexServerComponent {
+  this: IndexWiring with AccessWiring with ConfigurationComponent =>
+
+  val bagIndexServlet: BagIndexServlet = new BagIndexServlet {}
+  val server: BagIndexServer = new BagIndexServer(configuration.properties.getInt("bag-index.daemon.http.port"))
 }

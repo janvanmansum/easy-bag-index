@@ -107,10 +107,6 @@
             <artifactId>jetty-servlet</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-ajp</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.scalatra</groupId>
             <artifactId>scalatra_2.11</artifactId>
         </dependency>
@@ -212,35 +208,6 @@
     </build>
 
     <profiles>
-        <profile>
-            <id>command</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>service</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <configuration>
-                            <classpathScope>test</classpathScope>
-                            <mainClass>nl.knaw.dans.easy.bagindex.service.BagIndexService</mainClass>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
         <profile>
             <id>rpm</id>
             <activation>

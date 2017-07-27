@@ -15,38 +15,61 @@
  */
 package nl.knaw.dans.easy.bagindex.command
 
-import nl.knaw.dans.easy.bagindex.BagIndexApp
-
-import scala.language.reflectiveCalls
-import scala.util.{ Failure, Success }
+import nl.knaw.dans.easy.bagindex.service.ServiceWiring
 import nl.knaw.dans.lib.error._
 
-object Command extends App with BagIndexApp {
+import scala.language.reflectiveCalls
+import scala.util.control.NonFatal
+import scala.util.{ Failure, Success, Try }
 
-  initConnectionPool()
+object Command extends App with CommandLineOptionsComponent with ServiceWiring {
 
-  val opts = CommandLineOptions(args, properties)
-  opts.verify()
+  type FeedBackMessage = String
 
-  // TODO continue with the rest (command parsing etc.)
+  override val commandLine: CommandLineOptions = new CommandLineOptions(args) {
+    verify()
+  }
 
-  doTransaction(implicit connection => {
-    opts.subcommand match {
-      case Some(cmd @ opts.index) =>
+  val result: Try[FeedBackMessage] = for {
+    _ <- databaseAccess.initConnectionPool()
+    msg <- runCommandLine
+    _ <- databaseAccess.closeConnectionPool()
+  } yield msg
+
+  result.doIfSuccess(msg => println(s"OK: $msg"))
+    .doIfFailure { case e => logger.error(e.getMessage, e) }
+    .doIfFailure { case NonFatal(e) => println(s"FAILED: ${e.getMessage}") }
+
+  private def runCommandLine: Try[FeedBackMessage] = commandLine.subcommand match {
+    case Some(cmd @ commandLine.index) =>
+      databaseAccess.doTransaction(implicit connection => {
         cmd.bagId.toOption
-          .map(addFromBagStore(_).map(_ => s"Added bag with bagId ${ cmd.bagId() }"))
+          .map(index.addFromBagStore(_).map(_ => s"Added bag with bagId ${ cmd.bagId() }"))
           .getOrElse {
-            if (opts.interaction.deleteBeforeIndexing())
-              indexBagStore().map(_ => "bag-store index rebuilt successfully.")
+            if (commandLine.interaction.deleteBeforeIndexing())
+              indexFull.indexBagStore().map(_ => "bag-store index rebuilt successfully.")
             else
               Success("Indexing aborted.")
           }
-      case _ => Failure(new IllegalArgumentException(s"Unknown command: ${ opts.subcommand }"))
-    }
-  })
-    .map(msg => println(s"OK: $msg"))
-    .doIfFailure { case e => logger.error(e.getMessage, e) }
-    .getOrRecover(e => println(s"FAILED: ${ e.getMessage }"))
+      })
+    case Some(_ @ commandLine.runService) => runAsService()
+    case _ => Failure(new IllegalArgumentException(s"Unknown command: ${ commandLine.subcommand }"))
+  }
 
-  closeConnectionPool()
+  private def runAsService(): Try[FeedBackMessage] = Try {
+    Runtime.getRuntime.addShutdownHook(new Thread("service-shutdown") {
+      override def run(): Unit = {
+        logger.info("Stopping service ...")
+        server.stop()
+        logger.info("Cleaning up ...")
+        server.destroy()
+        logger.info("Service stopped.")
+      }
+    })
+
+    server.start()
+    logger.info("Service started ...")
+    Thread.currentThread.join()
+    "Service terminated normally."
+  }
 }

@@ -17,20 +17,29 @@ package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagIndexDatabaseFixture, BagStoreFixture, Bagit4Fixture }
+import nl.knaw.dans.easy.bagindex.{ BagIndexDatabaseFixture, BagStoreFixture, Bagit4Fixture, TestSupportFixture }
 
 import scala.util.Success
 
-class IndexBagStoreSpec extends BagStoreFixture with Bagit4Fixture with BagIndexDatabaseFixture with IndexBagStore with IndexBagStoreDatabase {
+class IndexBagStoreSpec extends TestSupportFixture
+  with BagStoreFixture
+  with Bagit4Fixture
+  with BagIndexDatabaseFixture
+  with IndexBagStoreComponent
+  with IndexBagStoreDatabaseComponent {
+
+  override val database: Database = new Database {}
+  override val indexDatabase: IndexBagStoreDatabase = new IndexBagStoreDatabase {}
+  override val indexFull: IndexBagStore = new IndexBagStore {}
 
   "indexBagStore" should "walk through the bagstore and index all bag relations" in {
     val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
     val uuid2 = UUID.fromString("00000000-0000-0000-0000-000000000002")
     val uuid3 = UUID.fromString("00000000-0000-0000-0000-000000000003")
 
-    indexBagStore() shouldBe a[Success[_]]
+    indexFull.indexBagStore() shouldBe a[Success[_]]
 
-    inside(getAllBagInfos) {
+    inside(database.getAllBagInfos) {
       case Success(rels) => rels.map(rel => (rel.bagId, rel.baseId, rel.doi)) should contain allOf(
         (uuid1, uuid1, doiMap(uuid1)),
         (uuid2, uuid1, doiMap(uuid2)),

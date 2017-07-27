@@ -15,10 +15,21 @@
  */
 package nl.knaw.dans.easy.bagindex
 
-import nl.knaw.dans.easy.bagindex.access.Bagit4FacadeComponent
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import org.scalatest.matchers.{ MatchResult, Matcher }
 
-trait Bagit4Fixture extends Bagit4FacadeComponent {
+import scala.xml.{ Node, Utility }
 
-  override val bagFacade = new Bagit4Facade()
+trait CustomMatchers {
+
+  // copied from easy-split-multi-deposit
+  class EqualTrimmedMatcher(right: Seq[Node]) extends Matcher[Seq[Node]] {
+    override def apply(left: Seq[Node]): MatchResult = {
+      MatchResult(
+        left.zip(right).forall { case (l, r) => Utility.trim(l).toString() == Utility.trim(r).toString() },
+        s"$left did not equal $right",
+        s"$left did equal $right"
+      )
+    }
+  }
+  def equalTrimmed(right: Seq[Node]) = new EqualTrimmedMatcher(right)
 }
