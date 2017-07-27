@@ -15,10 +15,10 @@
  */
 package nl.knaw.dans.easy.bagindex
 
-import nl.knaw.dans.easy.bagindex.access.Bagit4FacadeComponent
+import nl.knaw.dans.easy.bagindex.access.Bagit5FacadeComponent
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
-trait Bagit4Fixture extends Bagit4FacadeComponent {
+trait Bagit5Fixture extends Bagit5FacadeComponent {
 
-  override val bagFacade = new Bagit4Facade()
+  override val bagFacade = new Bagit5Facade()
 }

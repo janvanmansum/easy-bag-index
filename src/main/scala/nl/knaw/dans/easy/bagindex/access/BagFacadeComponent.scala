@@ -15,21 +15,26 @@
  */
 package nl.knaw.dans.easy.bagindex.access
 
+import java.io.IOException
 import java.net.URI
 import java.nio.file.Path
+import java.util.Map.Entry
 import java.util.UUID
 
-import gov.loc.repository.bagit.{ Bag, BagFactory }
+import gov.loc.repository.bagit.domain.Bag
+import gov.loc.repository.bagit.exceptions._
+import gov.loc.repository.bagit.reader.BagReader
 import nl.knaw.dans.easy.bagindex._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 
-import scala.collection.JavaConverters.mapAsScalaMapConverter
+import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
 import scala.xml.{ Node, XML }
+import scala.collection.JavaConverters._
 
 // TODO: (see also: easy-bag-store, easy-archive-bag) Candidate for new library easy-bagit-lib (a facade over the LOC lib)
-trait BagFacadeComponent {
+trait BagFacadeComponent extends DebugEnhancedLogging {
 
   val bagFacade: BagFacade
 
@@ -37,18 +42,6 @@ trait BagFacadeComponent {
   val CREATED = "Created"
 
   trait BagFacade {
-    def getIndexRelevantBagInfo(bagDir: Path): Try[(Option[BaseId], Option[DateTime])]
-
-    def getBagInfo(bagDir: Path): Try[Map[String, String]]
-
-    def getDoi(bagDir: Path): Try[Doi]
-  }
-}
-
-trait Bagit4FacadeComponent extends BagFacadeComponent with DebugEnhancedLogging {
-
-  class Bagit4Facade(bagFactory: BagFactory = new BagFactory) extends BagFacade {
-
     def getIndexRelevantBagInfo(bagDir: Path): Try[(Option[BaseId], Option[DateTime])] = {
       trace(bagDir)
       for {
@@ -62,20 +55,6 @@ trait Bagit4FacadeComponent extends BagFacadeComponent with DebugEnhancedLogging
       } yield (baseId, created)
     }
 
-    def getBagInfo(bagDir: Path): Try[Map[String, String]] = {
-      trace(bagDir)
-      for {
-        bag <- getBag(bagDir)
-        info <- Option(bag.getBagInfoTxt) // this call returns null if there is not bag-info.txt
-          .map(map => Success(map.asScala.toMap))
-          .getOrElse(Failure(NoBagInfoFoundException(bagDir)))
-      } yield info
-    }
-
-    private def getBag(bagDir: Path): Try[Bag] = Try {
-      bagFactory.createBag(bagDir.toFile, BagFactory.Version.V0_97, BagFactory.LoadOption.BY_MANIFESTS)
-    }.recoverWith { case cause => Failure(NotABagDirException(bagDir, cause)) }
-
     // TODO: canditate for easy-bagit-lib
     private def getIsVersionOfFromUri(bagDir: Path)(uri: URI): Try[UUID] = {
       if(uri.getScheme == "urn") {
@@ -86,14 +65,43 @@ trait Bagit4FacadeComponent extends BagFacadeComponent with DebugEnhancedLogging
       } else Failure(InvalidIsVersionOfException(bagDir, uri.toASCIIString))
     }
 
-    def getDoi(datasetXML: Path): Try[Doi] = Try {
-      trace(datasetXML)
-      val doi = (XML.loadFile(datasetXML.toFile) \ "dcmiMetadata" \ "identifier")
+    def getBagInfo(bagDir: Path): Try[Map[String, String]]
+
+    def getDoi(bagDir: Path): Try[Doi]
+  }
+}
+
+trait Bagit5FacadeComponent extends BagFacadeComponent with DebugEnhancedLogging {
+
+  class Bagit5Facade(bagReader: BagReader = new BagReader) extends BagFacade {
+
+    private def entryToTuple[K, V](entry: Entry[K, V]): (K, V) = entry.getKey -> entry.getValue
+
+    def getBagInfo(bagDir: Path): Try[Map[String, String]] = {
+      trace(bagDir)
+      getBag(bagDir).map(_.getMetadata.getAll.asScala.map(entryToTuple).toMap)
+    }
+
+    private def getBag(bagDir: Path): Try[Bag] = Try {
+      bagReader.read(bagDir)
+    }.recoverWith {
+      case cause: IOException => Failure(NotABagDirException(bagDir, cause))
+      case cause: UnparsableVersionException => Failure(BagReaderException(bagDir, cause))
+      case cause: MaliciousPathException => Failure(BagReaderException(bagDir, cause))
+      case cause: InvalidBagMetadataException => Failure(BagReaderException(bagDir, cause))
+      case cause: UnsupportedAlgorithmException => Failure(BagReaderException(bagDir, cause))
+      case cause: InvalidBagitFileFormatException => Failure(BagReaderException(bagDir, cause))
+      case NonFatal(cause) => Failure(NotABagDirException(bagDir, cause))
+    }
+
+    override def getDoi(datasetXml: Path): Try[Doi] = Try {
+      trace(datasetXml)
+      val doi = (XML.loadFile(datasetXml.toFile) \ "dcmiMetadata" \ "identifier")
         .find(hasXsiType(NAMESPACE_IDENTIFIER_TYPE, "DOI"))
         .map(node => Success(node.text))
-        .getOrElse(Failure(NoDoiFoundException(datasetXML)))
+        .getOrElse(Failure(NoDoiFoundException(datasetXml)))
 
-      debug(s"found doi for $datasetXML: $doi")
+      debug(s"found doi for $datasetXml: $doi")
       doi
     }.flatten
 
@@ -102,16 +110,12 @@ trait Bagit4FacadeComponent extends BagFacadeComponent with DebugEnhancedLogging
 
     // TODO copied from easy-ingest-flow
     private def hasXsiType(attrNamespace: URI, attrValue: String)(e: Node): Boolean = {
-      e.head
-        .attribute(NAMESPACE_SCHEMA_INSTANCE.toString, "type")
+      e.attribute(NAMESPACE_SCHEMA_INSTANCE.toString, "type")
         .exists {
           case Seq(n) =>
-            val split = n.text.lastIndexOf(':')
-            if (split == -1 || split == n.text.length - 1) false
-            else {
-              val pref = n.text.substring(0, split)
-              val label = n.text.substring(split + 1)
-              e.head.getNamespace(pref) == attrNamespace.toString && label == attrValue
+            n.text.split(":") match {
+              case Array(pref, label) => e.getNamespace(pref) == attrNamespace.toString && label == attrValue
+              case _ => false
             }
           case _ => false
         }

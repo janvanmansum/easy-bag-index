@@ -16,7 +16,7 @@
 package nl.knaw.dans.easy
 
 import java.nio.file.Path
-import java.util.{ Optional, Properties, UUID }
+import java.util.{ Optional, UUID }
 
 import org.joda.time.DateTime
 import org.joda.time.format.{ DateTimeFormatter, ISODateTimeFormat }
@@ -28,8 +28,8 @@ package object bagindex {
 
   case class BagIdNotFoundException(bagId: BagId) extends Exception(s"The specified bagId ($bagId) does not exist")
   case class NotABagDirException(bagDir: Path, cause: Throwable) extends Exception(s"A bag could not be loaded at $bagDir", cause)
+  case class BagReaderException(bagDir: Path, cause: Throwable) extends Exception(s"The bag at '$bagDir' could not be read: ${ cause.getMessage }", cause)
   case class BagNotFoundException(bagId: BagId) extends Exception(s"The bag with id '$bagId' could not be found")
-  case class NoBagInfoFoundException(bagDir: Path) extends Exception(s"The bag at '$bagDir' does not have a file 'bag-info.txt'")
   case class InvalidIsVersionOfException(bagDir: Path, value: String) extends Exception(s"Bag at '$bagDir' has an unsupported value in the bag-info.txt for field Is-Version-Of: $value")
   case class NoDoiFoundException(datasetXML: Path) extends Exception(s"The metadata/dataset.xml at '$datasetXML' does not contain a DOI identifier")
   case class BagAlreadyInIndexException(bagId: BagId) extends Exception(s"Bag '$bagId' is already in the index")
@@ -51,12 +51,13 @@ package object bagindex {
     implicit def toRichOptional[T](optional: Optional[T]): RichOptional[T] = new RichOptional[T](optional)
   }
 
-  class RichOptional[T] (opt: Optional[T]) {
+  class RichOptional[T](opt: Optional[T]) {
 
     /**
      * Transform this Optional to an equivalent Scala Option
      */
-    def asScala: Option[T] = if (opt.isPresent) Some(opt.get()) else None
+    def asScala: Option[T] = if (opt.isPresent) Some(opt.get())
+                             else None
   }
 
   // TODO: will NOT be in dans-scala-lib, because it actually doesn't work correctly...
