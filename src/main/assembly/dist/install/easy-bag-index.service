@@ -1,0 +1,14 @@
+[Unit]
+Description=EASY Bag Index Service
+
+[Service]
+ExecStart=/bin/java \
+ -Dlogback.configurationFile=/etc/opt/dans.knaw.nl/easy-bag-index/logback-service.xml \
+ -Dapp.home=/opt/dans.knaw.nl/easy-bag-index \
+ -jar /opt/dans.knaw.nl/easy-bag-index/bin/easy-bag-index.jar run-service
+
+User=easy-pid-generator
+Group=easy-pid-generator
+
+[Install]
+WantedBy=multi-user.target

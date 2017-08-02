@@ -41,8 +41,6 @@
             <outputDirectory>bin</outputDirectory>
             <includes>
                 <include>easy-bag-index</include>
-                <include>easy-bag-index-service-start</include>
-                <include>easy-bag-index-init.sh</include>
             </includes>
             <fileMode>0755</fileMode>
         </fileSet>

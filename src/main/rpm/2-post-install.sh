@@ -29,13 +29,6 @@ echo "POST-INSTALL: START (Number of current installations: $NUMBER_OF_INSTALLAT
 
 if [ ${NUMBER_OF_INSTALLATIONS} -eq 1 ]; then # First install
     echo "First time install, replacing default config with RPM-aligned one"
-    #
-    # Temporary arrangement to make sure the default config settings align with the FHS-abiding
-    # RPM installation
-    #
-    rm /etc/opt/dans.knaw.nl/${MODULE_NAME}/logback-service.xml
-    mv /etc/opt/dans.knaw.nl/${MODULE_NAME}/rpm-logback-service.xml /etc/opt/dans.knaw.nl/${MODULE_NAME}/logback-service.xml
-
 
     sudo -u postgres psql -c "\q" ${DATABASE_NAME} 2> /dev/null
     if [ $? -ne 0 ]; then
