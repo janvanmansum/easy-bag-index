@@ -17,8 +17,8 @@ package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.access.{ BagFacadeComponent, BagStoreAccessComponent }
 import nl.knaw.dans.easy.bagindex._
+import nl.knaw.dans.easy.bagindex.access.{ BagFacadeComponent, BagStoreAccessComponent }
 import nl.knaw.dans.lib.error._
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat

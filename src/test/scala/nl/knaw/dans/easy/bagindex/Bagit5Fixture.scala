@@ -16,7 +16,6 @@
 package nl.knaw.dans.easy.bagindex
 
 import nl.knaw.dans.easy.bagindex.access.Bagit5FacadeComponent
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 trait Bagit5Fixture extends Bagit5FacadeComponent {
 

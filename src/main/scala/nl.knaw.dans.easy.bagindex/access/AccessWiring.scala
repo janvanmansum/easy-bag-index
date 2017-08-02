@@ -34,7 +34,7 @@ trait AccessWiring extends Bagit5FacadeComponent
 
     baseDirs.collect { case base if !Files.isReadable(base) => base } match {
       case Seq() => true // everything ok!
-      case xs => throw new IllegalArgumentException(s"Non-existing or non-readable bag-store(s): ${xs.mkString(", ")}")
+      case xs => throw new IllegalArgumentException(s"Non-existing or non-readable bag-store(s): ${ xs.mkString(", ") }")
     }
   }
   override lazy val databaseAccess: DatabaseAccess = new DatabaseAccess {
@@ -49,6 +49,7 @@ trait AccessWiring extends Bagit5FacadeComponent
         case _ => false
       }
     }
+
     require(usernamePasswordSettings, "database username and password should be either both defined or not defined")
   }
 }

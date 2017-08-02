@@ -16,7 +16,6 @@
 package nl.knaw.dans.easy.bagindex.components
 
 import nl.knaw.dans.easy.bagindex.access.{ BagFacadeComponent, BagStoreAccessComponent }
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 trait IndexWiring extends IndexBagComponent
   with IndexBagStoreComponent

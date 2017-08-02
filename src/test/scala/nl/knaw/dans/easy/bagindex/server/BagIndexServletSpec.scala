@@ -17,8 +17,8 @@ package nl.knaw.dans.easy.bagindex.server
 
 import java.util.{ TimeZone, UUID }
 
-import nl.knaw.dans.easy.bagindex.components.{ DatabaseComponent, IndexBagComponent }
 import nl.knaw.dans.easy.bagindex._
+import nl.knaw.dans.easy.bagindex.components.{ DatabaseComponent, IndexBagComponent }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalamock.scalatest.MockFactory
 import org.scalatra.test.scalatest.ScalatraSuite
@@ -70,15 +70,15 @@ class BagIndexServletSpec extends TestSupportFixture
       status shouldBe 200
       body shouldBe
         s"""{
-          |  "result":[{
-          |    "bag-info":{
-          |      "bag-id":"$uuid1",
-          |      "base-id":"$uuid1",
-          |      "created":"${created.toString(dateTimeFormatter)}",
-          |      "doi":"$doi"
-          |    }
-          |  }]
-          |}""".stripMargin
+           |  "result":[{
+           |    "bag-info":{
+           |      "bag-id":"$uuid1",
+           |      "base-id":"$uuid1",
+           |      "created":"${ created.toString(dateTimeFormatter) }",
+           |      "doi":"$doi"
+           |    }
+           |  }]
+           |}""".stripMargin
     }
   }
 
@@ -207,7 +207,7 @@ class BagIndexServletSpec extends TestSupportFixture
   }
 
   it should "return an empty response when the bagId is unknown" in {
-    get(s"/bags/${UUID.randomUUID()}") {
+    get(s"/bags/${ UUID.randomUUID() }") {
       status shouldBe 200
       body shouldBe
         s"""{

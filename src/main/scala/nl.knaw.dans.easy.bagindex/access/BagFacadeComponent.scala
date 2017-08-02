@@ -28,10 +28,10 @@ import nl.knaw.dans.easy.bagindex._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.joda.time.DateTime
 
+import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
 import scala.xml.{ Node, XML }
-import scala.collection.JavaConverters._
 
 // TODO: (see also: easy-bag-store, easy-archive-bag) Candidate for new library easy-bagit-lib (a facade over the LOC lib)
 trait BagFacadeComponent extends DebugEnhancedLogging {
@@ -57,12 +57,13 @@ trait BagFacadeComponent extends DebugEnhancedLogging {
 
     // TODO: canditate for easy-bagit-lib
     private def getIsVersionOfFromUri(bagDir: Path)(uri: URI): Try[UUID] = {
-      if(uri.getScheme == "urn") {
+      if (uri.getScheme == "urn") {
         val uuidPart = uri.getSchemeSpecificPart
         val parts = uuidPart.split(':')
         if (parts.length != 2) Failure(InvalidIsVersionOfException(bagDir, uri.toASCIIString))
         else Try { UUID.fromString(parts(1)) }
-      } else Failure(InvalidIsVersionOfException(bagDir, uri.toASCIIString))
+      }
+      else Failure(InvalidIsVersionOfException(bagDir, uri.toASCIIString))
     }
 
     def getBagInfo(bagDir: Path): Try[Map[String, String]]

@@ -37,6 +37,7 @@ trait ConfigurationSupportFixture extends ConfigurationComponent {
 
     new Configuration {
       def version = "version x.y.z"
+
       def properties = new PropertiesConfiguration(props.toFile)
     }
   }

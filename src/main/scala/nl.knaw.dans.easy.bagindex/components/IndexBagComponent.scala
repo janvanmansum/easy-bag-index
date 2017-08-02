@@ -38,7 +38,7 @@ trait IndexBagComponent extends DebugEnhancedLogging {
      * The resulting sequence is sorted by the 'created' timestamp.
      * If the given bagId is not in the database, a `BagIdNotFoundException` will be returned.
      *
-     * @param bagId the bagId of which the whole sequence is requested
+     * @param bagId      the bagId of which the whole sequence is requested
      * @param connection the connection to the database on which this query needs to be run
      * @return a sequence of all bagIds that are in the same bag sequence as the given bagId.
      */
@@ -53,8 +53,8 @@ trait IndexBagComponent extends DebugEnhancedLogging {
     /**
      * Inserts a baseId into the index; that is, the bagId specifies itself as its base.
      *
-     * @param bagId the bagId to be added to the index
-     * @param created the date/time at which the bag corresponding to the bagId was created
+     * @param bagId      the bagId to be added to the index
+     * @param created    the date/time at which the bag corresponding to the bagId was created
      * @param connection the connection to the database on which this action needs to be applied
      * @return `Success` if the bagId was added to the index; `Failure` otherwise
      */
@@ -69,9 +69,9 @@ trait IndexBagComponent extends DebugEnhancedLogging {
      * as the baseId of the currently added bagId instead.
      * If the baseId does not exist in the index a `BagIdNotFoundException` is returned.
      *
-     * @param bagId the bagId to be added to the index
-     * @param baseId the base of this bagId
-     * @param created the date/time at which the bag corresponding to the bagId was created
+     * @param bagId      the bagId to be added to the index
+     * @param baseId     the base of this bagId
+     * @param created    the date/time at which the bag corresponding to the bagId was created
      * @param connection the connection to the database on which this action needs to be applied
      * @return the baseId of the super-base if the bagId was added to the index; `Failure` otherwise
      */

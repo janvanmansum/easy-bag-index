@@ -44,8 +44,8 @@ trait CommandLineOptionsComponent {
          |Usage:
          |
          |$printedName \\
-         |${_________}  | index [bagId]
-         |${_________}  | run-service
+         |${ _________ }| index [bagId]
+         |${ _________ }| run-service
          |
       |Options:
     """.stripMargin)

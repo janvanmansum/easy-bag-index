@@ -18,8 +18,8 @@ package nl.knaw.dans.easy.bagindex.access
 import java.sql.SQLException
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagIndexDatabaseFixture, TestSupportFixture }
 import nl.knaw.dans.easy.bagindex.components.DatabaseComponent
+import nl.knaw.dans.easy.bagindex.{ BagIndexDatabaseFixture, TestSupportFixture }
 import org.joda.time.DateTime
 
 import scala.util.{ Failure, Success, Try }

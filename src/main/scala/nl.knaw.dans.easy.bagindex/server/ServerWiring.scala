@@ -18,7 +18,6 @@ package nl.knaw.dans.easy.bagindex.server
 import nl.knaw.dans.easy.bagindex.ConfigurationComponent
 import nl.knaw.dans.easy.bagindex.access.AccessWiring
 import nl.knaw.dans.easy.bagindex.components.IndexWiring
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 trait ServerWiring extends BagIndexServletComponent with BagIndexServerComponent {
   this: IndexWiring with AccessWiring with ConfigurationComponent =>

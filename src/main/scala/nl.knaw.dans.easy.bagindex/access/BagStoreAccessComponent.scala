@@ -100,7 +100,7 @@ trait BagStoreAccessComponent extends DebugEnhancedLogging {
      * Return the path to the bag's `metadata/dataset.xml` file.
      *
      * @param baseDir the path to the bag
-     * @param bagId the bag's bagId
+     * @param bagId   the bag's bagId
      * @return the path to the bag's `metadata/dataset.xml` file
      */
     def toDatasetXml(baseDir: Path, bagId: BagId): Path = {

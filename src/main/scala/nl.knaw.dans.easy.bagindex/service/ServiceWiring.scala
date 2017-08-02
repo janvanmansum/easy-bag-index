@@ -21,7 +21,6 @@ import nl.knaw.dans.easy.bagindex.ConfigurationComponent
 import nl.knaw.dans.easy.bagindex.access.AccessWiring
 import nl.knaw.dans.easy.bagindex.components.IndexWiring
 import nl.knaw.dans.easy.bagindex.server.ServerWiring
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 
 trait ServiceWiring extends ServerWiring
   with AccessWiring

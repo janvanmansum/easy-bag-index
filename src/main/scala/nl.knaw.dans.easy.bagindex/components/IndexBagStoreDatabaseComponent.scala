@@ -62,7 +62,7 @@ trait IndexBagStoreDatabaseComponent extends DatabaseComponent with DebugEnhance
      * Return a sequence of bagIds (refering to bags in the bag-store) and their creation time
      * from the bag-index that are in the same bag-sequence as the given bagId.
      *
-     * @param bagId the bagId for which the rest of the sequence needs to be found
+     * @param bagId      the bagId for which the rest of the sequence needs to be found
      * @param connection the connection to the database on which this query needs to be run
      * @return the sequence of bagIds and creation times that are in the same bag-sequence as the given bagId
      */
@@ -112,15 +112,15 @@ trait IndexBagStoreDatabaseComponent extends DatabaseComponent with DebugEnhance
      * Update all records for which the bagId is in the given `bagSequence` to have `newBaseId`
      * as their base.
      *
-     * @param newBaseId the new baseId to be put in the bag-index
+     * @param newBaseId   the new baseId to be put in the bag-index
      * @param bagSequence the sequence of bagIds to be updated
-     * @param connection the connection to the database on which this query needs to be run
+     * @param connection  the connection to the database on which this query needs to be run
      * @return `Success` if the update was successful; `Failure` otherwise
      */
     def updateBagsInSequence(newBaseId: BaseId, bagSequence: Seq[BagId])(implicit connection: Connection): Try[Unit] = {
       trace(newBaseId, bagSequence)
 
-      val query = s"UPDATE bag_info SET base = ? WHERE bagId IN (${bagSequence.map(_ => "?").mkString(", ")});"
+      val query = s"UPDATE bag_info SET base = ? WHERE bagId IN (${ bagSequence.map(_ => "?").mkString(", ") });"
       managed(connection.prepareStatement(query))
         .map(prepStatement => {
           prepStatement.setString(1, newBaseId.toString)
