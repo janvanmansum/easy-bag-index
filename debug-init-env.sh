@@ -15,9 +15,14 @@
 # limitations under the License.
 #
 
+DATADIR=data
 
-APPHOME=home
+echo "Copying test bag store to $DATADIR..."
+cp -r src/test/resources/bag-store $DATADIR/bag-store
 
-mvn exec:java -Dapp.home=$APPHOME \
-              -Dlogback.configurationFile=$APPHOME/cfg/logback-service.xml \
-              -Dexec.args="run-service"
+echo "Create bag-index.db as an sqlite database in $DATADIR..."
+sqlite3 $DATADIR/bag-index.db < src/test/resources/database/bag-index.sql
+
+touch $DATADIR/easy-bag-index.log
+chmod -R 777 $DATADIR
+echo "OK"
