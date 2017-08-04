@@ -47,8 +47,8 @@ trait CommandLineOptionsComponent {
          |${ _________ }| index [bagId]
          |${ _________ }| run-service
          |
-      |Options:
-    """.stripMargin)
+         |Options:
+         |""".stripMargin)
 
     private implicit val uuidConverter = singleArgConverter[UUID](UUID.fromString)
     private implicit val dateTimeConverter = singleArgConverter[DateTime](DateTime.parse)

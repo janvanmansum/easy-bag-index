@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 
+#include <service.sh>
 
 NUMBER_OF_INSTALLATIONS=$1
 MODULE_NAME=easy-bag-index
