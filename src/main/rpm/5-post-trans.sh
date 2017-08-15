@@ -15,8 +15,11 @@
 # limitations under the License.
 #
 
+#include <service.sh>
 
-NUMBER_OF_INSTALLATIONS=$1
-echo "PRE-REMOVE: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
+MODULE_NAME=easy-bag-index
+PHASE="POST-TRANS"
 
-echo "PRE-REMOVE: DONE."
+echo "$PHASE: START"
+service_restart $MODULE_NAME
+echo "$PHASE: DONE"
