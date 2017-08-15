@@ -90,6 +90,7 @@ trait BagIndexServletComponent {
         })
         .getOrElse(Failure(new IllegalArgumentException("no search query specified")))
         .map(Ok(_))
+        .doIfFailure { case e => logger.error(e.getMessage, e) }
         .getOrRecover(defaultErrorHandling)
     }
 
@@ -111,6 +112,7 @@ trait BagIndexServletComponent {
         })
         .getOrElse(Failure(new IllegalArgumentException("query parameter 'contains' not found")))
         .map(ids => Ok(ids.mkString("\n")))
+        .doIfFailure { case e => logger.error(e.getMessage, e) }
         .getOrRecover(defaultErrorHandling)
     }
 
@@ -129,6 +131,7 @@ trait BagIndexServletComponent {
           case BagIdNotFoundException(_) => Success(createResponse[Unit](_ => <result/>)(_ => "result" -> JArray(List.empty))(()))
         }
         .map(Ok(_))
+        .doIfFailure { case e => logger.error(e.getMessage, e) }
         .getOrRecover(defaultErrorHandling)
     }
 
@@ -143,6 +146,7 @@ trait BagIndexServletComponent {
         }
         .flatMap(uuid => databaseAccess.doTransaction(implicit c => index.addFromBagStore(uuid)))
         .map(_ => Created())
+        .doIfFailure { case e => logger.error(e.getMessage, e) }
         .getOrRecover(defaultErrorHandling)
     }
 
