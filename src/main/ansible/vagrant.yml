@@ -40,6 +40,7 @@
 
   - name: Reload ansible_local
     setup: filter=ansible_local
+    when: changed
 
   - name: Install package
     yum:
