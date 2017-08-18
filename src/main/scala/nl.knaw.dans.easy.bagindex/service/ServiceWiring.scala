@@ -13,11 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagindex
+package nl.knaw.dans.easy.bagindex.service
 
-import nl.knaw.dans.easy.bagindex.access.Bagit5FacadeComponent
+import java.nio.file.Paths
 
-trait Bagit5Fixture extends Bagit5FacadeComponent {
+import nl.knaw.dans.easy.bagindex.ConfigurationComponent
+import nl.knaw.dans.easy.bagindex.access.AccessWiring
+import nl.knaw.dans.easy.bagindex.components.IndexWiring
+import nl.knaw.dans.easy.bagindex.server.ServerWiring
 
-  override val bagFacade = new Bagit5Facade()
+trait ServiceWiring extends ServerWiring
+  with AccessWiring
+  with IndexWiring
+  with ConfigurationComponent {
+  lazy val configuration: Configuration = Configuration(Paths.get(System.getProperty("app.home")))
 }

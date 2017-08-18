@@ -17,11 +17,9 @@
 
 #include <service.sh>
 
-NUMBER_OF_INSTALLATIONS=$1
 MODULE_NAME=easy-bag-index
-PHASE="PRE-INSTALL"
+PHASE="POST-TRANS"
 
-echo "$PHASE: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
-service_stop $MODULE_NAME $NUMBER_OF_INSTALLATIONS
-service_create_module_user $MODULE_NAME
+echo "$PHASE: START"
+service_restart $MODULE_NAME
 echo "$PHASE: DONE"

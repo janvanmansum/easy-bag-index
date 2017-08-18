@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagindex
+package nl.knaw.dans.easy.bagindex.server
 
-import nl.knaw.dans.easy.bagindex.access.Bagit5FacadeComponent
+import nl.knaw.dans.easy.bagindex.ConfigurationComponent
+import nl.knaw.dans.easy.bagindex.access.AccessWiring
+import nl.knaw.dans.easy.bagindex.components.IndexWiring
 
-trait Bagit5Fixture extends Bagit5FacadeComponent {
+trait ServerWiring extends BagIndexServletComponent with BagIndexServerComponent {
+  this: IndexWiring with AccessWiring with ConfigurationComponent =>
 
-  override val bagFacade = new Bagit5Facade()
+  val bagIndexServlet: BagIndexServlet = new BagIndexServlet {}
+  val server: BagIndexServer = new BagIndexServer(configuration.properties.getInt("bag-index.daemon.http.port"))
 }

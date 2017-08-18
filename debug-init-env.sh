@@ -15,13 +15,14 @@
 # limitations under the License.
 #
 
-#include <service.sh>
+DATADIR=data
 
-NUMBER_OF_INSTALLATIONS=$1
-MODULE_NAME=easy-bag-index
-PHASE="PRE-INSTALL"
+echo "Copying test bag store to $DATADIR..."
+cp -r src/test/resources/bag-store $DATADIR/bag-store
 
-echo "$PHASE: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
-service_stop $MODULE_NAME $NUMBER_OF_INSTALLATIONS
-service_create_module_user $MODULE_NAME
-echo "$PHASE: DONE"
+echo "Create bag-index.db as an sqlite database in $DATADIR..."
+sqlite3 $DATADIR/bag-index.db < src/test/resources/database/bag-index.sql
+
+touch $DATADIR/easy-bag-index.log
+chmod -R 777 $DATADIR
+echo "OK"

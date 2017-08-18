@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright (C) 2017 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
 #
@@ -15,13 +14,11 @@
 # limitations under the License.
 #
 
-#include <service.sh>
+- name: Create role for service
+  shell: "sudo -u postgres psql -c \"CREATE ROLE easy_bag_index WITH LOGIN PASSWORD 'changeme'\""
 
-NUMBER_OF_INSTALLATIONS=$1
-MODULE_NAME=easy-bag-index
-PHASE="PRE-INSTALL"
+- name: Create database
+  shell: "sudo -u postgres psql -c \"CREATE DATABASE easy_bag_index OWNER easy_bag_index\""
 
-echo "$PHASE: START (Number of current installations: $NUMBER_OF_INSTALLATIONS)"
-service_stop $MODULE_NAME $NUMBER_OF_INSTALLATIONS
-service_create_module_user $MODULE_NAME
-echo "$PHASE: DONE"
+- name: Create database schema
+  shell: "sudo -u postgres psql easy_bag_index < /opt/dans.knaw.nl/easy-bag-index/install/db-tables.sql"

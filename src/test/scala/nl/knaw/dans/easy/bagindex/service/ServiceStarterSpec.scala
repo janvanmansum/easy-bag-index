@@ -38,7 +38,7 @@ class ServiceStarterSpec extends TestSupportFixture
 
   private val databaseFile = testDir.resolve("seed.db")
   private val configFile = testDir.resolve("cfg/application.properties")
-  private val bagStoreBaseDirs @ Seq(firstBagStore, _@_*) = Seq("first-bag-store", "second-bag-store").map(testDir.resolve)
+  private val bagStoreBaseDirs @ Seq(firstBagStore, _ @ _*) = Seq("first-bag-store", "second-bag-store").map(testDir.resolve)
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -65,7 +65,7 @@ class ServiceStarterSpec extends TestSupportFixture
     // check setup worked as expected
     configFile.toFile should exist
     databaseFile.toFile should exist
-    all (bagStoreBaseDirs.map(_.toFile)) should exist
+    all(bagStoreBaseDirs.map(_.toFile)) should exist
 
     daemon.init(mock[DaemonContext])
     daemon.start()

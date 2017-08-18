@@ -28,7 +28,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
   override val database = new Database {}
 
   "getBaseBagId" should "return the base of a specific bagId" in {
-    val bagIds@(baseId :: _) = List.fill(3)(UUID.randomUUID())
+    val bagIds @ (baseId :: _) = List.fill(3)(UUID.randomUUID())
     val times = List(
       DateTime.parse("1992-07-30T16:00:00"),
       DateTime.parse("2004-01-01"),
@@ -64,7 +64,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
   }
 
   it should "return a sequence with all bagIds with a certain baseId" in {
-    val bagIds1@(baseId1 :: _) = List.fill(3)(UUID.randomUUID())
+    val bagIds1 @ (baseId1 :: _) = List.fill(3)(UUID.randomUUID())
     val times1 = List(
       DateTime.parse("1992-07-30T16:00:00"),
       DateTime.parse("2004-01-01"),
@@ -72,7 +72,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
     )
     val dois1 = List("10.5072/dans-x6f-kf6x", "10.5072/dans-x6f-kf66", "10.5072/dans-y7g-lg77")
 
-    val bagIds2@(baseId2 :: _) = List.fill(5)(UUID.randomUUID())
+    val bagIds2 @ (baseId2 :: _) = List.fill(5)(UUID.randomUUID())
     val times2 = List(
       DateTime.parse("2001-09-11"),
       DateTime.parse("2017"),
@@ -85,7 +85,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
     List(
       ((bagIds1, times1, dois1).zipped.toList, baseId1),
       ((bagIds2, times2, dois2).zipped.toList, baseId2))
-      .flatMap { case (xs, base) => xs.map { case (bagId, time, doi) => database.addBagInfo(bagId, base, time, doi) }}
+      .flatMap { case (xs, base) => xs.map { case (bagId, time, doi) => database.addBagInfo(bagId, base, time, doi) } }
       .collectResults shouldBe a[Success[_]]
 
     inside(database.getAllBagsWithBase(baseId1)) {
@@ -97,7 +97,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
   }
 
   "getBagInfo" should "return the relation object for the given bagId" in {
-    val bagIds@(baseId :: _) = List.fill(3)(UUID.randomUUID())
+    val bagIds @ (baseId :: _) = List.fill(3)(UUID.randomUUID())
     val times = List(
       DateTime.parse("1992-07-30T16:00:00"),
       DateTime.parse("2004-01-01"),
@@ -120,19 +120,19 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
   }
 
   "getBagsWithDoi" should "return all bags with a certain DOI" in {
-    val bagIds@bagId1 :: bagId2 :: Nil = List.fill(2)(UUID.randomUUID())
-    val times@time1 :: time2 :: Nil = List(
+    val bagIds @ bagId1 :: bagId2 :: Nil = List.fill(2)(UUID.randomUUID())
+    val times @ time1 :: time2 :: Nil = List(
       DateTime.parse("1992-07-30T16:00:00"),
       DateTime.now()
     )
-    val dois@doi1 :: _ = List.fill(2)("10.5072/dans-x6f-kf6x")
+    val dois @ doi1 :: _ = List.fill(2)("10.5072/dans-x6f-kf6x")
 
     (bagIds, times, dois).zipped.toList
       .map { case (bagId, time, doi) => database.addBagInfo(bagId, bagId, time, doi) }
       .collectResults shouldBe a[Success[_]]
 
     inside(database.getBagsWithDoi(doi1)) {
-      case Success(bags) => bags should (have size 2 and contain only (BagInfo(bagId1, bagId1, time1, doi1), BagInfo(bagId2, bagId2, time2, doi1)))
+      case Success(bags) => bags should (have size 2 and contain only(BagInfo(bagId1, bagId1, time1, doi1), BagInfo(bagId2, bagId2, time2, doi1)))
     }
   }
 
@@ -155,7 +155,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
   }
 
   "addBagInfo" should "insert a new bag relation into the database" in {
-    val bagIds@(baseId :: _) = List.fill(3)(UUID.randomUUID())
+    val bagIds @ (baseId :: _) = List.fill(3)(UUID.randomUUID())
     val times = List(
       DateTime.parse("1992-07-30T16:00:00"),
       DateTime.parse("2004-01-01"),
@@ -187,7 +187,7 @@ class DatabaseSpec extends TestSupportFixture with BagIndexDatabaseFixture with 
     result2 should matchPattern { case Failure(BagAlreadyInIndexException(`bagId`)) => }
 
     inside(database.getAllBagInfos) {
-      case Success(relations) => relations should contain (BagInfo(bagId, baseId, time, doi))
+      case Success(relations) => relations should contain(BagInfo(bagId, baseId, time, doi))
     }
   }
 }

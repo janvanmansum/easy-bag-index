@@ -19,9 +19,7 @@ import java.nio.file.{ Path, Paths }
 import java.util.UUID
 
 import nl.knaw.dans.easy.bagindex.access.BagStoreAccessComponent
-import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import org.apache.commons.io.FileUtils
-import org.scalatest.BeforeAndAfterEach
 
 trait BagStoreFixture extends BagStoreAccessComponent {
   this: TestSupportFixture =>
@@ -46,5 +44,6 @@ trait BagStoreFixture extends BagStoreAccessComponent {
     UUID.fromString("00000000-0000-0000-0000-000000000002") -> "10.5072/dans-2xg-umq9",
     UUID.fromString("00000000-0000-0000-0000-000000000003") -> "10.5072/dans-2xg-umq0"
   )
+
   def doiMap(uuidString: String): String = doiMap(UUID.fromString(uuidString))
 }

@@ -13,11 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.knaw.dans.easy.bagindex
+package nl.knaw.dans.easy.bagindex.components
 
-import nl.knaw.dans.easy.bagindex.access.Bagit5FacadeComponent
+import nl.knaw.dans.easy.bagindex.access.{ BagFacadeComponent, BagStoreAccessComponent }
 
-trait Bagit5Fixture extends Bagit5FacadeComponent {
+trait IndexWiring extends IndexBagComponent
+  with IndexBagStoreComponent
+  with DatabaseComponent
+  with IndexBagStoreDatabaseComponent {
+  this: BagStoreAccessComponent with BagFacadeComponent =>
 
-  override val bagFacade = new Bagit5Facade()
+  override val database: Database = new Database {}
+  override val index: IndexBag = new IndexBag {}
+  override val indexFull: IndexBagStore = new IndexBagStore {}
+  override val indexDatabase: IndexBagStoreDatabase = new IndexBagStoreDatabase {}
 }

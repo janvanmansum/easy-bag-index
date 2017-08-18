@@ -35,7 +35,7 @@ class BagFacadeSpec extends TestSupportFixture with BagStoreFixture with Bagit5F
 
     object RemoveDOI extends RewriteRule {
       override def transform(node: Node): Seq[Node] = node match {
-        case Elem(_, "identifier", _, _, _@_*) => NodeSeq.Empty
+        case Elem(_, "identifier", _, _, _ @ _*) => NodeSeq.Empty
         case n => n
       }
     }
