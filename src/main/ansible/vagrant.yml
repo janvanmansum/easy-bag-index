@@ -37,10 +37,11 @@
       src: conditions.fact
       dest: /etc/ansible/facts.d/
       mode: "u+x"
+    register: result
 
   - name: Reload ansible_local
     setup: filter=ansible_local
-    when: changed
+    when: result.changed
 
   - name: Install package
     yum:
