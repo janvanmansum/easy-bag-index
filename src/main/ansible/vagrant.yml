@@ -64,7 +64,7 @@
       dest: /srv/dans.knaw.nl/bag-store/
       mode: "0444"
       directory_mode: "0555"
-    when: ansible_local.conditions.test_data_not_exists
+    when: ansible_local.conditions.test_data_does_not_exist
 
   - service:
       name: easy-bag-index
