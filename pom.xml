@@ -27,7 +27,7 @@
 
     <groupId>nl.knaw.dans.easy</groupId>
     <artifactId>easy-bag-index</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.1.0</version>
 
     <name>EASY Bag Index</name>
     <url>https://github.com/DANS-KNAW/easy-bag-index</url>
@@ -40,7 +40,7 @@
 
     <scm>
         <developerConnection>scm:git:https://github.com/DANS-KNAW/easy-bag-index</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v1.1.0</tag>
     </scm>
 
     <dependencies>
