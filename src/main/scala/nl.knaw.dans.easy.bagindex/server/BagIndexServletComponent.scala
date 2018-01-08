@@ -40,13 +40,13 @@ trait BagIndexServletComponent {
   trait BagIndexServlet extends ScalatraServlet with DebugEnhancedLogging {
 
     private def toXml(bagInfo: BagInfo): Node = {
-    <bag-info>
-      <bag-id>{bagInfo.bagId.toString}</bag-id>
-      <base-id>{bagInfo.baseId.toString}</base-id>
-      <created>{bagInfo.created.toString(dateTimeFormatter)}</created>
-      <doi>{bagInfo.doi}</doi>
-    </bag-info>
-  }
+      <bag-info>
+        <bag-id>{bagInfo.bagId.toString}</bag-id>
+        <base-id>{bagInfo.baseId.toString}</base-id>
+        <created>{bagInfo.created.toString(dateTimeFormatter)}</created>
+        <doi>{bagInfo.doi}</doi>
+      </bag-info>
+    }
 
     private def toJson(bagInfo: BagInfo): JValue = {
       "bag-info" -> {
