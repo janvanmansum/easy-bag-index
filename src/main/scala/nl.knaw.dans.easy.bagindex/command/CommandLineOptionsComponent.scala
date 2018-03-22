@@ -44,7 +44,7 @@ trait CommandLineOptionsComponent {
          |Usage:
          |
          |$printedName \\
-         |${ _________ }| index [bagId]
+         |${ _________ }| index [--force | -f] [bagId]
          |${ _________ }| run-service
          |
          |Options:
@@ -55,6 +55,10 @@ trait CommandLineOptionsComponent {
 
     val index = new Subcommand("index") {
       descr("Adds one bag or the whole bag-store to the index")
+
+      val force: ScallopOption[Boolean] = opt(name = "force", short = 'f', default = Some(false),
+        descr = "force the indexing without asking for confirmation")
+
       val bagId: ScallopOption[BagId] = trailArg[UUID](name = "bagId",
         descr = "the bag identifier to be added",
         required = false)
