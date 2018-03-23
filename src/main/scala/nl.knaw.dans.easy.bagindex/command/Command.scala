@@ -46,7 +46,7 @@ object Command extends App with CommandLineOptionsComponent with ServiceWiring {
         cmd.bagId.toOption
           .map(index.addFromBagStore(_).map(_ => s"Added bag with bagId ${ cmd.bagId() }"))
           .getOrElse {
-            if (commandLine.interaction.deleteBeforeIndexing())
+            if (cmd.force() || commandLine.interaction.deleteBeforeIndexing())
               indexFull.indexBagStore().map(_ => "bag-store index rebuilt successfully.")
             else
               Success("Indexing aborted.")
