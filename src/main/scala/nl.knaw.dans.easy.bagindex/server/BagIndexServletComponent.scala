@@ -125,6 +125,7 @@ trait BagIndexServletComponent {
         .recoverWith {
           case _: IllegalArgumentException => Failure(new IllegalArgumentException(s"invalid UUID string: $uuidStr"))
         }
+        .doIfSuccess(bagId => logger.info(s"get relation data corresponding to bag $bagId"))
         .flatMap(uuid => databaseAccess.doTransaction(implicit c => database.getBagInfo(uuid)))
         .map(createResponse[BagInfo](bagInfo => <result>{toXml(bagInfo)}</result>)(bagInfo => "result" -> toJson(bagInfo)))
         .recoverWith {

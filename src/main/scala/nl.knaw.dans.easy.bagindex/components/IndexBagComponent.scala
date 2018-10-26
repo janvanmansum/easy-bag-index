@@ -43,7 +43,7 @@ trait IndexBagComponent extends DebugEnhancedLogging {
      * @return a sequence of all bagIds that are in the same bag sequence as the given bagId.
      */
     def getBagSequence(bagId: BagId)(implicit connection: Connection): Try[Seq[BagId]] = {
-      trace(bagId)
+      logger.info(s"retrieve all bags in the sequence of bagId $bagId")
       for {
         baseId <- database.getBaseBagId(bagId)
         seq <- database.getAllBagsWithBase(baseId)
@@ -94,7 +94,7 @@ trait IndexBagComponent extends DebugEnhancedLogging {
      * @return the baseId that linked with the given bagId
      */
     def addFromBagStore(bagId: BagId)(implicit connection: Connection): Try[BaseId] = {
-      trace(bagId)
+      logger.info(s"add bag $bagId from the bag-store to the index")
       for {
         bagDir <- bagStore.toLocation(bagId)
         (baseId, created) <- bagFacade.getIndexRelevantBagInfo(bagDir)
