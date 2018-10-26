@@ -44,13 +44,16 @@ trait IndexBagStoreComponent extends DebugEnhancedLogging {
      * @return `Success` if the indexing was successful; `Failure` otherwise
      */
     def indexBagStore()(implicit connection: Connection): Try[Unit] = {
-      trace(())
+      logger.info(s"indexing bag-stores ${ bagStore.baseDirs.mkString("{", ", ", "}") }")
+      logger.info("clearing index")
       for {
-      // delete all data from the bag-index
+        // delete all data from the bag-index
         _ <- indexDatabase.clearIndex()
         // walk over bagstore
+        _ = logger.info("searching all bags for each bag-stores")
         bags <- bagStore.traverse
         // extract data from bag-info.txt
+        _ = logger.info("extracting baseDir, created date and DOI from every bag")
         infos = bags.map {
           case (bagId, path) =>
             (bagFacade.getIndexRelevantBagInfo(path).get, bagFacade.getDoi(bagStore.toDatasetXml(path, bagId)).get) match {
@@ -61,6 +64,7 @@ trait IndexBagStoreComponent extends DebugEnhancedLogging {
             }
         }
         // insert data 'as-is'
+        _ = logger.info("adding information to database")
         _ <- Try {
           // TODO is there a better way to fail fast?
           // - ~~Richard: "Yes, there is, because you're working on a Stream. I'll add it to the dans-scala-lib as soon as I have time for it."~~
@@ -71,8 +75,10 @@ trait IndexBagStoreComponent extends DebugEnhancedLogging {
           }
         }
         // get all base bagIds
+        _ = logger.info("retrieve all base bagIds from database")
         bases <- indexDatabase.getAllBaseBagIds
         // get the bags in the same collection as the base bagId and calculate the oldest one
+        _ = logger.info("find the oldest bag in each collection")
         oldestBagInSequence <- bases.map(baseId => {
           for {
             collection <- indexDatabase.getAllBagsInSequence(baseId)
@@ -81,6 +87,7 @@ trait IndexBagStoreComponent extends DebugEnhancedLogging {
           } yield (oldestBagId, bagIds)
         }).collectResults
         // perform update query for each collection
+        _ = logger.info("update base bagIds")
         _ <- Try {
           // TODO is there a better way to fail fast?
           oldestBagInSequence.foreach { case (oldest, sequence) => indexDatabase.updateBagsInSequence(oldest, sequence).get }
