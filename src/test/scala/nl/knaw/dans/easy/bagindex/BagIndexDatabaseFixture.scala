@@ -24,7 +24,6 @@ import org.scalatest.BeforeAndAfterEach
 import resource._
 
 import scala.io.Source
-import scala.util.Success
 
 trait BagIndexDatabaseFixture extends BeforeAndAfterEach with DatabaseAccessComponent {
   this: TestSupportFixture =>

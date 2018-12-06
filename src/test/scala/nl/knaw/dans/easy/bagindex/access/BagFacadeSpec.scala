@@ -15,13 +15,13 @@
  */
 package nl.knaw.dans.easy.bagindex.access
 
-import nl.knaw.dans.easy.bagindex.{ BagStoreFixture, Bagit5Fixture, NoDoiFoundException, TestSupportFixture }
+import nl.knaw.dans.easy.bagindex.{ BagStoreFixture, Bagit5Fixture, FixDateTimeNow, NoDoiFoundException, TestSupportFixture }
 
 import scala.util.{ Failure, Success }
 import scala.xml.transform.{ RewriteRule, RuleTransformer }
 import scala.xml.{ Elem, Node, NodeSeq, XML }
 
-class BagFacadeSpec extends TestSupportFixture with BagStoreFixture with Bagit5Fixture {
+class BagFacadeSpec extends TestSupportFixture with BagStoreFixture with Bagit5Fixture with FixDateTimeNow {
 
   private val bagStoreBaseDir = bagStore.baseDirs.headOption.getOrElse(throw new NoSuchElementException("no bagstore base directory found"))
 
