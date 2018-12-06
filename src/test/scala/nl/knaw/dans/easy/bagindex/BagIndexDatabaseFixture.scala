@@ -15,10 +15,11 @@
  */
 package nl.knaw.dans.easy.bagindex
 
-import java.nio.file.{ Files, Path }
+import java.nio.file.Path
 import java.sql.Connection
 
 import nl.knaw.dans.easy.bagindex.access.DatabaseAccessComponent
+import org.apache.commons.io.FileUtils
 import org.scalatest.BeforeAndAfterEach
 import resource._
 
@@ -28,13 +29,13 @@ import scala.util.Success
 trait BagIndexDatabaseFixture extends BeforeAndAfterEach with DatabaseAccessComponent {
   this: TestSupportFixture =>
 
-  val databaseFile: Path = testDir.resolve("database.db")
+  private val databaseDir: Path = testDir.resolve("database")
 
   implicit var connection: Connection = _
 
-  override val databaseAccess = new DatabaseAccess {
-    override val dbDriverClassName: String = "org.sqlite.JDBC"
-    override val dbUrl: String = s"jdbc:sqlite:${ databaseFile.toString }"
+  override val databaseAccess: DatabaseAccess = new DatabaseAccess {
+    override val dbDriverClassName: String = "org.hsqldb.jdbcDriver"
+    override val dbUrl: String = s"jdbc:hsqldb:file:${ databaseDir.toString }/db"
     override val dbUsername = Option.empty[String]
     override val dbPassword = Option.empty[String]
 
@@ -44,10 +45,7 @@ trait BagIndexDatabaseFixture extends BeforeAndAfterEach with DatabaseAccessComp
       managed(pool.getConnection)
         .flatMap(connection => managed(connection.createStatement))
         .and(managed(Source.fromFile(getClass.getClassLoader.getResource("database/bag-index.sql").toURI)).map(_.mkString))
-        .map { case (statement, query) =>
-          statement.executeUpdate(query)
-        }
-        .tried shouldBe a[Success[_]]
+        .acquireAndGet { case (statement, query) => statement.executeUpdate(query) }
 
       connection = pool.getConnection
 
@@ -57,11 +55,12 @@ trait BagIndexDatabaseFixture extends BeforeAndAfterEach with DatabaseAccessComp
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    Files.deleteIfExists(databaseFile)
+    FileUtils.deleteQuietly(databaseDir.toFile)
     databaseAccess.initConnectionPool()
   }
 
   override def afterEach(): Unit = {
+    managed(connection.createStatement).acquireAndGet(_.execute("SHUTDOWN"))
     connection.close()
     databaseAccess.closeConnectionPool()
     super.afterEach()

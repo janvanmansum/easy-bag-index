@@ -163,7 +163,7 @@ trait DatabaseComponent extends DebugEnhancedLogging {
         .tried
         .map(_ => ())
         .recoverWith {
-          case e: SQLException if e.getMessage contains "UNIQUE constraint failed: bag_info.bagId" =>
+          case e: SQLException if e.getMessage.toLowerCase contains "unique constraint" =>
             Failure(BagAlreadyInIndexException(bagId))
         }
     }

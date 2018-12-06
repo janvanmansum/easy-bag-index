@@ -125,6 +125,8 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
   }
 
   "clearIndex" should "delete all data from the bag-index" in {
+    setupBagStoreIndexTestCase()
+
     inside(database.getAllBagInfos) {
       case Success(data) => data should not be empty
     }
@@ -137,6 +139,8 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
   }
 
   it should "succeed if clearing an empty bag-index" in {
+    setupBagStoreIndexTestCase()
+
     inside(database.getAllBagInfos) {
       case Success(data) => data should not be empty
     }
@@ -150,7 +154,7 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
   }
 
   "updateBagsInSequence" should "update all bags in the sequence to have the newBaseId as their base in the database" in {
-    implicit val bags = setupBagStoreIndexTestCase()
+    implicit val bags: Map[Char, (BagId, DateTime)] = setupBagStoreIndexTestCase()
 
     inside(indexDatabase.getAllBagsInSequence(getBagId('f'))) { case Success(xs) =>
       val fBags = xs.map { case (bagId, _) => bagId }
