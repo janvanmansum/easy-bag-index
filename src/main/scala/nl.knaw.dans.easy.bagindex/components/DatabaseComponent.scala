@@ -60,6 +60,8 @@ trait DatabaseComponent extends DebugEnhancedLogging {
 
   trait Database {
     private def getBagInfo(result: ResultSet): BagInfo = {
+      println(s"getBagInfo '${ result.getString("created") }'")
+
       BagInfo(
         bagId = UUID.fromString(result.getString("bagId").trim),
         baseId = UUID.fromString(result.getString("base").trim),

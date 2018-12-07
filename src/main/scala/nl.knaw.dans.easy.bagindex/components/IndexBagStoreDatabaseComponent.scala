@@ -80,6 +80,8 @@ trait IndexBagStoreDatabaseComponent extends DatabaseComponent with DebugEnhance
           |FROM bag_info JOIN bags_in_sequence ON bag_info.bagId = bags_in_sequence.bag;
         """.stripMargin
 
+      println(s"'$query'")
+
       val resultSet = for {
         prepStatement <- managed(connection.prepareStatement(query))
         _ = prepStatement.setString(1, bagId.toString)
@@ -90,7 +92,12 @@ trait IndexBagStoreDatabaseComponent extends DatabaseComponent with DebugEnhance
         .map(result => Stream.continually(result.next())
           .takeWhile(b => b)
           .map(_ => {
-            val created = result.getString("created")
+            /* The `.trim` in the expression below is to remove any and all trailing whitespaces
+             * from this query result. These whitespaces only occur when the tests are run on Travis
+             * and only with the query above. Other queries that 'SELECT created' don't show this
+             * behavior.
+             */
+            val created = result.getString("created").trim
             println(s"getAllBagsInSequence: '$created'")
 
             (UUID.fromString(result.getString("bagId")), DateTime.parse(created, dateTimeFormatter))
