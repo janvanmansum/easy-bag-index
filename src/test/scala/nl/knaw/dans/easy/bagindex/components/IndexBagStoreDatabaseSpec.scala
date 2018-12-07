@@ -17,7 +17,7 @@ package nl.knaw.dans.easy.bagindex.components
 
 import java.util.UUID
 
-import nl.knaw.dans.easy.bagindex.{ BagId, BagIndexDatabaseFixture, BagInfo, FixDateTimeNow, TestSupportFixture }
+import nl.knaw.dans.easy.bagindex.{ BagId, BagIndexDatabaseFixture, BagInfo, TestSupportFixture }
 import nl.knaw.dans.lib.error._
 import org.joda.time.DateTime
 
@@ -25,7 +25,6 @@ import scala.util.Success
 
 class IndexBagStoreDatabaseSpec extends TestSupportFixture
   with BagIndexDatabaseFixture
-  with FixDateTimeNow
   with IndexBagStoreDatabaseComponent
   with DatabaseComponent {
 
