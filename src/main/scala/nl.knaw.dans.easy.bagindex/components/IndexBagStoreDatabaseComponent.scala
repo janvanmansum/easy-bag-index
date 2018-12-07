@@ -89,9 +89,7 @@ trait IndexBagStoreDatabaseComponent extends DatabaseComponent with DebugEnhance
       resultSet
         .map(result => Stream.continually(result.next())
           .takeWhile(b => b)
-          .map(_ => {
-            (UUID.fromString(result.getString("bagId")), DateTime.parse(result.getString("created").trim, dateTimeFormatter))
-          })
+          .map(_ => (UUID.fromString(result.getString("bagId")), DateTime.parse(result.getString("created").trim, dateTimeFormatter)))
           .toList)
         .tried
     }
