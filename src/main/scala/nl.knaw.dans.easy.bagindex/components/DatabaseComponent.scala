@@ -60,8 +60,6 @@ trait DatabaseComponent extends DebugEnhancedLogging {
 
   trait Database {
     private def getBagInfo(result: ResultSet): BagInfo = {
-      println(s"getBagInfo '${ result.getString("created") }'")
-
       BagInfo(
         bagId = UUID.fromString(result.getString("bagId").trim),
         baseId = UUID.fromString(result.getString("base").trim),
@@ -158,9 +156,7 @@ trait DatabaseComponent extends DebugEnhancedLogging {
         .map(prepStatement => {
           prepStatement.setString(1, bagId.toString)
           prepStatement.setString(2, baseId.toString)
-          val createdString = created.toString(dateTimeFormatter)
-          println(s"addBagInfo '$createdString'")
-          prepStatement.setString(3, createdString)
+          prepStatement.setString(3, created.toString(dateTimeFormatter))
           prepStatement.setString(4, doi)
           prepStatement.executeUpdate()
         })

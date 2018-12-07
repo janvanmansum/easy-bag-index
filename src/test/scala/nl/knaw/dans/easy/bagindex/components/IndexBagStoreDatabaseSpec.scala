@@ -103,7 +103,7 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
   }
 
   "getAllBaseBagIds" should "return a sequence of bagIds refering to bags that are the base of their sequence" in {
-    implicit val bags = setupBagStoreIndexTestCase()
+    implicit val bags: Map[Char, (BagId, DateTime)] = setupBagStoreIndexTestCase()
 
     inside(indexDatabase.getAllBaseBagIds) {
       case Success(bases) => bases should contain allOf(getBagId('f'), getBagId('z'))
@@ -111,7 +111,7 @@ class IndexBagStoreDatabaseSpec extends TestSupportFixture
   }
 
   "getAllBagsInSequence" should "return a sequence of bagIds and date/times of all bags that are in the same sequence as the given bagId" in {
-    implicit val bags = setupBagStoreIndexTestCase()
+    implicit val bags: Map[Char, (BagId, DateTime)] = setupBagStoreIndexTestCase()
     val (zBags, fBags) = bags.partition { case (c, _) => List('x', 'y', 'z').contains(c) }
     val fBag1 :: fBag2 :: fTail = fBags.values.toList
     val zBag1 :: zBag2 :: zTail = zBags.values.toList
