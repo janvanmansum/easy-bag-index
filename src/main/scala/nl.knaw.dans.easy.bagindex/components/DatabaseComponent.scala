@@ -156,7 +156,9 @@ trait DatabaseComponent extends DebugEnhancedLogging {
         .map(prepStatement => {
           prepStatement.setString(1, bagId.toString)
           prepStatement.setString(2, baseId.toString)
-          prepStatement.setString(3, created.toString(dateTimeFormatter))
+          val createdString = created.toString(dateTimeFormatter)
+          println(s"addBagInfo '$createdString'")
+          prepStatement.setString(3, createdString)
           prepStatement.setString(4, doi)
           prepStatement.executeUpdate()
         })
