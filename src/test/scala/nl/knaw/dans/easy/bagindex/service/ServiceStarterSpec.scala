@@ -17,6 +17,7 @@ package nl.knaw.dans.easy.bagindex.service
 
 import java.nio.file.{ Files, Paths }
 import java.sql.DriverManager
+import java.util.stream.Collectors
 
 import nl.knaw.dans.easy.bagindex.{ ConfigurationSupportFixture, ServerTestSupportFixture, TestSupportFixture }
 import org.apache.commons.daemon.DaemonContext
@@ -36,7 +37,7 @@ class ServiceStarterSpec extends TestSupportFixture
 
   private lazy val daemon = new ServiceStarter
 
-  private val databaseFile = testDir.resolve("seed.db")
+  private val databaseDir = testDir.resolve("index-database")
   private val configFile = testDir.resolve("cfg/application.properties")
   private val bagStoreBaseDirs @ Seq(firstBagStore, _ @ _*) = Seq("first-bag-store", "second-bag-store").map(testDir.resolve)
 
@@ -44,13 +45,13 @@ class ServiceStarterSpec extends TestSupportFixture
     super.beforeEach()
 
     // set correct configuration parameters
-    configuration.properties.setProperty("bag-index.database.url", s"jdbc:sqlite:${ databaseFile.toString }")
+    configuration.properties.setProperty("bag-index.database.url", s"jdbc:hsqldb:file:$databaseDir/db")
     configuration.properties.setProperty("bag-index.bag-store.base-dirs", bagStoreBaseDirs.mkString(","))
     configuration.properties.save(configFile.toFile)
     System.setProperty("app.home", testDir.toString)
 
     // initialize the database
-    managed(DriverManager.getConnection(s"jdbc:sqlite:${ databaseFile.toString }"))
+    managed(DriverManager.getConnection(s"jdbc:hsqldb:file:$databaseDir/db"))
       .flatMap(connection => managed(connection.createStatement))
       .and(managed(Source.fromFile(getClass.getClassLoader.getResource("database/bag-index.sql").toURI)).map(_.mkString))
       .acquireAndGet { case (statement, query) => statement.executeUpdate(query) }
@@ -64,7 +65,7 @@ class ServiceStarterSpec extends TestSupportFixture
 
     // check setup worked as expected
     configFile.toFile should exist
-    databaseFile.toFile should exist
+    databaseDir.toFile should exist
     all(bagStoreBaseDirs.map(_.toFile)) should exist
 
     daemon.init(mock[DaemonContext])

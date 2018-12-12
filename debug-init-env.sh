@@ -20,8 +20,10 @@ DATADIR=data
 echo "Copying test bag store to $DATADIR..."
 cp -r src/test/resources/bag-store $DATADIR/bag-store
 
-echo "Create bag-index.db as an sqlite database in $DATADIR..."
-sqlite3 $DATADIR/bag-index.db < src/test/resources/database/bag-index.sql
+echo "Create bag-index.db as a HSQLDB database in $DATADIR..."
+mkdir $DATADIR/database
+cp src/test/resources/database/db.properties $DATADIR/database/db.properties
+cp src/test/resources/database/db.script $DATADIR/database/db.script
 
 touch $DATADIR/easy-bag-index.log
 chmod -R 777 $DATADIR
