@@ -21,6 +21,7 @@ import nl.knaw.dans.easy.bagindex._
 import nl.knaw.dans.easy.bagindex.components.{ DatabaseComponent, IndexBagComponent }
 import org.joda.time.{ DateTime, DateTimeZone }
 import org.scalamock.scalatest.MockFactory
+import org.scalatra.test.EmbeddedJettyContainer
 import org.scalatra.test.scalatest.ScalatraSuite
 
 import scala.util.Success
@@ -31,7 +32,7 @@ class BagIndexServletSpec extends TestSupportFixture
   with BagStoreFixture
   with Bagit5Fixture
   with ConfigurationSupportFixture
-  with ServletFixture
+  with EmbeddedJettyContainer
   with ScalatraSuite
   with MockFactory
   with CustomMatchers
