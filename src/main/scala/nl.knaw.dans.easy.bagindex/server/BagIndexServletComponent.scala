@@ -22,6 +22,7 @@ import nl.knaw.dans.easy.bagindex.access.DatabaseAccessComponent
 import nl.knaw.dans.easy.bagindex.components.{ DatabaseComponent, IndexBagComponent }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
+import nl.knaw.dans.lib.logging.servlet._
 import org.joda.time.DateTime
 import org.json4s.JValue
 import org.json4s.JsonAST.JArray
@@ -37,7 +38,10 @@ trait BagIndexServletComponent {
 
   val bagIndexServlet: BagIndexServlet
 
-  trait BagIndexServlet extends ScalatraServlet with DebugEnhancedLogging {
+  trait BagIndexServlet extends ScalatraServlet
+    with ServletLogger
+    with PlainLogFormatter
+    with DebugEnhancedLogging {
 
     private def toXml(bagInfo: BagInfo): Node = {
       <bag-info>
@@ -70,6 +74,7 @@ trait BagIndexServletComponent {
 
     get("/") {
       Ok("EASY Bag Index running.")
+        .logResponse
     }
 
     get("/search") {
@@ -92,6 +97,7 @@ trait BagIndexServletComponent {
         .map(Ok(_))
         .doIfFailure { case e => logger.error(e.getMessage, e) }
         .getOrRecover(defaultErrorHandling)
+        .logResponse
     }
 
     // GET: http://bag-index/bag-sequence?contains=<bagId>
@@ -114,6 +120,7 @@ trait BagIndexServletComponent {
         .map(ids => Ok(ids.mkString("\n")))
         .doIfFailure { case e => logger.error(e.getMessage, e) }
         .getOrRecover(defaultErrorHandling)
+        .logResponse
     }
 
     // GET: http://bag-index/bags/<bagId>
@@ -134,6 +141,7 @@ trait BagIndexServletComponent {
         .map(Ok(_))
         .doIfFailure { case e => logger.error(e.getMessage, e) }
         .getOrRecover(defaultErrorHandling)
+        .logResponse
     }
 
     // PUT: http://bag-index/bags/<bagId>
@@ -149,6 +157,7 @@ trait BagIndexServletComponent {
         .map(_ => Created())
         .doIfFailure { case e => logger.error(e.getMessage, e) }
         .getOrRecover(defaultErrorHandling)
+        .logResponse
     }
 
     // TODO (low prio) zelfde interface in cmd als in servlet
