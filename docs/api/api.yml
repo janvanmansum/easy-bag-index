@@ -1,0 +1,176 @@
+openapi: 3.0.0
+info:
+  title: Bag Index Service API
+  version: 1.2.3
+  description: |
+    This document specifies the Bag Index Service API. It provides relational metadata about items in the bag stores.
+    This API implements the operations `GET` on the paths `/`, `/bag-sequence?contains=:UUID`, `/search?doi=:DOI` and `/bags/:UUID` and implements the operation PUT on `/bags/:UUID`
+    It is not neccessary for this service to supply the bag store the bag is stored in.
+
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: 'http://localhost:20120'
+    description: Local machine running Bag Index
+
+paths:
+  /:
+    get:
+      summary: Returns a description of the service.
+      description:
+        This is the starting place for navigating the Bag Index Service. It returns a description of the service.
+      responses:
+        200:
+          description: Description of the service
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: A plain text, human readable description of the service
+                example: Bag Index Service is running.
+        500:
+          $ref: '#/components/responses/Unavailable'
+
+  /search?doi={DOI}:
+    get:
+      summary: Returns the Bag Index metadata for all items related to a digital object identifier.
+      description: |
+        An item is a bag. The item fetched is specified by the DOI:
+
+      parameters:
+        - $ref: '#/components/parameters/DOI'
+
+      responses:
+        200:
+          description: Bag index object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/bagIndexOk"
+        404:
+          $ref: '#/components/responses/FileNotFound'
+        500:
+          $ref: '#/components/responses/Unavailable'
+
+  /bag-sequence?contains={UUID}:
+    get:
+      summary: Returns the Bag Index metadata for an item from a bag in any bag store.
+      description: |
+        An item is either a directory or file in a bag. The item fetched is specified by the item-id:
+
+      parameters:
+        - $ref: '#/components/parameters/UUID'
+
+      responses:
+        200:
+          description: Bag index object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/bagIndexOk"
+        400:
+                  description: The UUID was syntactically incorrect.
+        404:
+          $ref: '#/components/responses/FileNotFound'
+        500:
+          $ref: '#/components/responses/Unavailable'
+
+  /bags/{UUID}:
+    get:
+      summary: Returns the Bag Index metadata for an item from a bag in any bag store.
+      description: |
+        An item is either a directory or file in a bag. The item fetched is specified by the item-id:
+
+      parameters:
+        - $ref: '#/components/parameters/UUID'
+
+      responses:
+        200:
+          description: Bag index object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/bagIndexOk"
+        400:
+          description: The UUID was syntactically incorrect.
+        404:
+          $ref: '#/components/responses/FileNotFound'
+        500:
+          $ref: '#/components/responses/Unavailable'
+    put:
+      summary: Creates the Bag Index metadata for an item from a bag in any bag store.
+      description: |
+        An item is either a directory or file in a bag. The item fetched is specified by the item-id:
+
+      parameters:
+        - $ref: '#/components/parameters/UUID'
+
+      responses:
+        201:
+          description: The object has been created.
+        400:
+          description: |
+            the request was rejected by the bag-index. The reason will be included in the response entity. Some possible causes are:
+
+            * The bag has already been added to the index.
+            * The UUID was syntactically incorrect.
+        404:
+          $ref: '#/components/responses/FileNotFound'
+        500:
+          $ref: '#/components/responses/Unavailable'
+
+
+components:
+  parameters:
+    UUID:
+      in: path
+      name: UUID
+      schema:
+        type: string
+      required: true
+      description: bag-id of the targeted bag
+    DOI:
+      in: path
+      name: DOI
+      schema:
+        type: string
+      required: true
+      description: digital object identifier of the targeted bag
+
+  responses:
+    Unavailable:
+      description: Service is unavailable because of an error.
+    FileNotFound:
+      description: The item could not be found.
+
+  schemas:
+    bagIndexOk:
+      type: object
+      example:
+        result:
+          bag-info:
+            bag-id: 40594b6d-8378-4260-b96b-13b57beadf7c
+            base-id: 40594b6d-8378-4260-b96b-13b57beadf7c
+            created: "2015-05-19T00:00:00.000+02:00"
+            doi: 10.5072/dans-x6f-kf66
+      properties:
+        result:
+          type: object
+          properties:
+            bag-info:
+              type: object
+              properties:
+                bag-id:
+                  type: string
+                  format: "uuid"
+                base-id:
+                  type: string
+                  format: "uuid"
+                created:
+                  type: string
+                  format: "date-time"
+                doi:
+                  type: string
+                  format: "doi"
