@@ -18,7 +18,7 @@ package nl.knaw.dans.easy.bagindex
 import java.net.{ HttpURLConnection, URL }
 
 import org.apache.commons.io.IOUtils
-import resource._
+import resource.managed
 
 trait ServerTestSupportFixture {
 
@@ -40,5 +40,5 @@ trait ServerTestSupportFixture {
     }
   }
 
-  def successful: (Int, String) = (200, "EASY Bag Index running.")
+  def successful(version: String): (Int, String) = (200, s"EASY Bag Index running v$version.")
 }

@@ -43,6 +43,8 @@ trait BagIndexServletComponent {
     with PlainLogFormatter
     with DebugEnhancedLogging {
 
+    val version: String
+
     private def toXml(bagInfo: BagInfo): Node = {
       <bag-info>
         <bag-id>{bagInfo.bagId.toString}</bag-id>
@@ -73,7 +75,7 @@ trait BagIndexServletComponent {
     }
 
     get("/") {
-      Ok("EASY Bag Index running.")
+      Ok(s"EASY Bag Index running v$version.")
         .logResponse
     }
 

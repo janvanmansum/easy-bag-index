@@ -34,7 +34,7 @@ trait ConfigurationComponent {
 
   object Configuration {
     def apply(home: Path): Configuration = new Configuration {
-      override val version: String = managed(Source.fromFile(home.resolve("bin/version").toFile)).acquireAndGet(_.mkString)
+      override val version: String = managed(Source.fromFile(home.resolve("bin/version").toFile)).acquireAndGet(_.mkString).stripLineEnd
 
       private val cfgPath = Seq(
         Paths.get(s"/etc/opt/dans.knaw.nl/easy-bag-index/"),

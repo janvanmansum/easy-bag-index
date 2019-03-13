@@ -79,6 +79,6 @@ class ServiceStarterSpec extends TestSupportFixture
   }
 
   "calling GET /" should "check that the service is up and running" in {
-    callService() shouldBe successful
+    callService() shouldBe successful(configuration.version)
   }
 }

@@ -40,9 +40,13 @@ class BagIndexServletSpec extends TestSupportFixture
   with IndexBagComponent
   with DatabaseComponent {
 
+  private val testVersion: String = "1.0.0"
+
   override val database: Database = new Database {}
   override val index: IndexBag = new IndexBag {}
-  override val bagIndexServlet = new BagIndexServlet {}
+  override val bagIndexServlet = new BagIndexServlet {
+    override val version: String = testVersion
+  }
 
   override def beforeAll(): Unit = {
     super.beforeAll()
@@ -53,7 +57,7 @@ class BagIndexServletSpec extends TestSupportFixture
   "get" should "signal that the service is running" in {
     get("/") {
       status shouldBe 200
-      body shouldBe "EASY Bag Index running."
+      body shouldBe s"EASY Bag Index running v$testVersion."
     }
   }
 
