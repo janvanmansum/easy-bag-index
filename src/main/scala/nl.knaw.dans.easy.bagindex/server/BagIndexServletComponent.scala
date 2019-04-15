@@ -41,6 +41,7 @@ trait BagIndexServletComponent {
   trait BagIndexServlet extends ScalatraServlet
     with ServletLogger
     with PlainLogFormatter
+    with LogResponseBodyOnError
     with DebugEnhancedLogging {
 
     val version: String
@@ -76,7 +77,6 @@ trait BagIndexServletComponent {
 
     get("/") {
       Ok(s"EASY Bag Index running v$version.")
-        .logResponse
     }
 
     get("/search") {
@@ -99,7 +99,6 @@ trait BagIndexServletComponent {
         .map(Ok(_))
         .doIfFailure { case e => logger.error(e.getMessage, e) }
         .getOrRecover(defaultErrorHandling)
-        .logResponse
     }
 
     // GET: http://bag-index/bag-sequence?contains=<bagId>
@@ -122,7 +121,6 @@ trait BagIndexServletComponent {
         .map(ids => Ok(ids.mkString("\n")))
         .doIfFailure { case e => logger.error(e.getMessage, e) }
         .getOrRecover(defaultErrorHandling)
-        .logResponse
     }
 
     // GET: http://bag-index/bags/<bagId>
@@ -143,7 +141,6 @@ trait BagIndexServletComponent {
         .map(Ok(_))
         .doIfFailure { case e => logger.error(e.getMessage, e) }
         .getOrRecover(defaultErrorHandling)
-        .logResponse
     }
 
     // PUT: http://bag-index/bags/<bagId>
@@ -159,7 +156,6 @@ trait BagIndexServletComponent {
         .map(_ => Created())
         .doIfFailure { case e => logger.error(e.getMessage, e) }
         .getOrRecover(defaultErrorHandling)
-        .logResponse
     }
 
     // TODO (low prio) zelfde interface in cmd als in servlet
