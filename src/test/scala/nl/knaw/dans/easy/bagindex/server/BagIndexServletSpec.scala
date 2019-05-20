@@ -211,13 +211,31 @@ class BagIndexServletSpec extends TestSupportFixture
     }
   }
 
-  it should "return an empty response when the bagId is unknown" in {
-    get(s"/bags/${ UUID.randomUUID() }") {
+  it should "return the info of bag in json if no accept header is provided" in {
+    val uuid1 = UUID.fromString("00000000-0000-0000-0000-000000000001")
+    index.addFromBagStore(uuid1) shouldBe a[Success[_]]
+    val doi = "10.5072/dans-2xg-umq8"
+    val created = DateTime.parse("2017-01-16T14:35:00.888")
+    get(s"/bags/$uuid1", headers = Seq()) {
       status shouldBe 200
-      body shouldBe
-        s"""{
-           |  "result":[]
-           |}""".stripMargin
+      body shouldBe s"""{
+                      |  "result":{
+                      |    "bag-info":{
+                      |      "bag-id":"$uuid1",
+                      |      "base-id":"$uuid1",
+                      |      "created":"${created.toString(dateTimeFormatter)}",
+                      |      "doi":"$doi"
+                      |    }
+                      |  }
+                      |}""".stripMargin
+    }
+  }
+
+  it should "return an empty response when the bagId is unknown" in {
+    val uuid = UUID.randomUUID()
+    get(s"/bags/${ uuid }") {
+      status shouldBe 404
+      body shouldBe s"bag with id $uuid could not be found"
     }
   }
 
