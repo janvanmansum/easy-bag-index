@@ -5,6 +5,7 @@ Description=EASY Bag Index Service
 ExecStart=/bin/java \
  -Dlogback.configurationFile=/etc/opt/dans.knaw.nl/easy-bag-index/logback-service.xml \
  -Dapp.home=/opt/dans.knaw.nl/easy-bag-index \
+ -Dorg.scalatra.environment="production" \
  -jar /opt/dans.knaw.nl/easy-bag-index/bin/easy-bag-index.jar run-service
 
 # Java returns 143 even if the SIGTERM was handled correctly.
