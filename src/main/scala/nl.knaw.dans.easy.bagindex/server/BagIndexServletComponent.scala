@@ -25,7 +25,6 @@ import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import nl.knaw.dans.lib.logging.servlet._
 import org.joda.time.DateTime
 import org.json4s.JValue
-import org.json4s.JsonAST.JArray
 import org.json4s.JsonDSL._
 import org.json4s.native.JsonMethods._
 import org.scalatra._
@@ -167,7 +166,7 @@ trait BagIndexServletComponent {
         case e: BagIdNotFoundException => NotFound(e.getMessage)
         case e: NotABagDirException => NotFound(e.getMessage)
         case e: InvalidIsVersionOfException => BadRequest(e.getMessage)
-        case e: BagNotFoundException => BadRequest(e.getMessage)
+        case e: BagNotFoundException => NotFound(e.getMessage)
         case e: NoDoiFoundException => BadRequest(e.getMessage)
         case e: BagAlreadyInIndexException => BadRequest(e.getMessage)
         case e =>
