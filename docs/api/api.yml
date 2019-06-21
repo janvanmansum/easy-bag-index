@@ -29,15 +29,13 @@ paths:
               schema:
                 type: string
                 description: A plain text, human readable description of the service
-                example: Bag Index Service is running.
-        500:
-          $ref: '#/components/responses/Unavailable'
+                example: EASY Bag Index running v1.2.3
 
   /search?doi={DOI}:
     get:
       summary: Returns the Bag Index metadata for all items related to a digital object identifier.
       description: |
-        An item is a bag. The item fetched is specified by the DOI:
+        The item fetched is specified by the DOI. The results can contain more than one bag-info object.
 
       parameters:
         - $ref: '#/components/parameters/DOI'
@@ -48,40 +46,43 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/bagIndexOk"
-        404:
-          $ref: '#/components/responses/FileNotFound'
+                $ref: "#/components/schemas/bagIndexArrayOk"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/bagIndexArrayOk"
+        400:
+          description: The query parameter was not supported.
         500:
           $ref: '#/components/responses/Unavailable'
 
   /bag-sequence?contains={UUID}:
     get:
-      summary: Returns the Bag Index metadata for an item from a bag in any bag store.
+      summary: Returns a newline separated list of UUIDs that make up the bag-sequence for the specified bag.
       description: |
-        An item is either a directory or file in a bag. The item fetched is specified by the item-id:
-
+        The fetched list is specified by the item-id of any bag in the sequence. The items are listed in order of their creation date. If the UUID is not found an empty list is returned.
       parameters:
         - $ref: '#/components/parameters/UUID'
 
       responses:
         200:
-          description: Bag index object
+          description: Newline separated list of UUIDs
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/bagIndexOk"
+                $ref: "#/components/schemas/bagSequenceOk"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/bagSequenceOk"
         400:
-                  description: The UUID was syntactically incorrect.
-        404:
-          $ref: '#/components/responses/FileNotFound'
+          description: The UUID was syntactically incorrect.
         500:
           $ref: '#/components/responses/Unavailable'
 
   /bags/{UUID}:
     get:
-      summary: Returns the Bag Index metadata for an item from a bag in any bag store.
+      summary: Returns the Bag Index metadata for a bag with the specified item-id.
       description: |
-        An item is either a directory or file in a bag. The item fetched is specified by the item-id:
+        The Bag Index metadata related to a single bag are retrieved from the index.
 
       parameters:
         - $ref: '#/components/parameters/UUID'
@@ -93,17 +94,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/bagIndexOk"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/bagIndexOk"
         400:
           description: The UUID was syntactically incorrect.
         404:
-          $ref: '#/components/responses/FileNotFound'
+          description: Bag-index metadata could not be found for the specified item-id.
         500:
           $ref: '#/components/responses/Unavailable'
     put:
-      summary: Creates the Bag Index metadata for an item from a bag in any bag store.
+      summary: Adds the Bag Index metadata of a single bag to the index.
       description: |
-        An item is either a directory or file in a bag. The item fetched is specified by the item-id:
-
+        The bag for which the metadata should be added to the index is specified by the item-id.
       parameters:
         - $ref: '#/components/parameters/UUID'
 
@@ -116,8 +119,11 @@ paths:
 
             * The bag has already been added to the index.
             * The UUID was syntactically incorrect.
+            * The bag could not read, and may have been corrupt.
+            * The DOI could not be found in the bag's metadata.
+            * Bag-info.txt contains an invalid Is-Version-Of identifier tag.
         404:
-          $ref: '#/components/responses/FileNotFound'
+          A bag with the specified item-id could not be found.
         500:
           $ref: '#/components/responses/Unavailable'
 
@@ -151,10 +157,10 @@ components:
       example:
         result:
           bag-info:
-            bag-id: 40594b6d-8378-4260-b96b-13b57beadf7c
-            base-id: 40594b6d-8378-4260-b96b-13b57beadf7c
-            created: "2015-05-19T00:00:00.000+02:00"
-            doi: 10.5072/dans-x6f-kf66
+            bag-id: 40594b6d-8378-4260-b96b-13b57beadf7c,
+            base-id: 40594b6d-8378-4260-b96b-13b57beadf7c,
+            created: 2015-05-19T00:00:00.000+02:00,
+            doi: 10.17026/test-x6f-kf66
       properties:
         result:
           type: object
@@ -174,3 +180,38 @@ components:
                 doi:
                   type: string
                   format: "doi"
+
+    bagIndexArrayOk:
+      type: object
+      example:
+        result:
+          - bag-info:
+              bag-id: 40594b6d-8378-4260-b96b-13b57beadf7c,
+              base-id: 40594b6d-8378-4260-b96b-13b57beadf7c,
+              created: 2015-05-19T00:00:00.000+02:00,
+              doi: 10.17026/test-x6f-kf66
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              bag-info:
+                properties:
+                  bag-id:
+                    type: string
+                    format: "uuid"
+                  base-id:
+                    type: string
+                    format: "uuid"
+                  created:
+                    type: string
+                    format: "date-time"
+                  doi:
+                    type: string
+                    format: "doi"
+
+    bagSequenceOk:
+      type: string
+      example:
+        c01d7876-8080-4597-81fe-9083b5463cc1\n a165d874-b8b1-4870-94dc-3242a6a44ab8\n ef5d6285-c835-4199-9ae8-72cf9407b81c
